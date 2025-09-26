@@ -3,23 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Selecionar Armador</title>
+    <title>Gerenciar Tarefas</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header><h1>Gerenciar Tarefas</h1></header>
     <main>
         <section class="p-4">
-            <h2 class="text-center">Selecione um Armador</h2>
-            <form id="form-selecao" class="form-group" style="max-width: 400px; margin: 2rem auto;">
-                <label for="armador-select">Armador (Cliente):</label>
+            <h2 class="text-center">Ver Tarefas por Armador</h2>
+            <form id="form-selecao" class="form-group" style="max-width: 400px; margin: 1rem auto;">
+                <label for="armador-select">Selecione um Armador (Cliente):</label>
                 <select id="armador-select" required>
                     <option value="" disabled selected>Carregando...</option>
                 </select>
                 <div class="text-center" style="margin-top: 1rem;">
-                    <button type="submit" class="button">Avançar</button>
+                    <button type="submit" class="button">Ver Tarefas do Armador</button>
                 </div>
             </form>
+
+            <hr style="margin: 2rem auto; max-width: 400px;">
+
+            <div class="text-center">
+                <h2 class="text-center">Ver Minhas Tarefas</h2>
+                <a href="lista-tarefas.html?filtro=minhas_ativas" class="button alterar-button">Ver Todas as Minhas Tarefas Ativas</a>
+            </div>
         </section>
         <div class="nav-buttons">
             <a href="index.html" class="button">Voltar para a Página Inicial</a>
@@ -28,6 +35,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
     <script src="config.js"></script>
     <script src="auth-guard.js"></script>
+    <script src="user-display.js"></script> <script></script>
     <script>
         const armadorSelect = document.getElementById('armador-select');
         const formSelecao = document.getElementById('form-selecao');
@@ -35,13 +43,15 @@
 
         async function carregarArmadores() {
             const { data, error } = await supabase_client.from('armadores').select('id, nome, logo_url').order('nome');
+            
             if (error) {
-                armadorSelect.innerHTML = '<option>Erro ao carregar</option>';
+                console.error("Erro ao carregar armadores:", error);
+                armadorSelect.innerHTML = '<option value="">Erro ao carregar a lista</option>';
                 return;
             }
             
             armadoresData = data;
-            armadorSelect.innerHTML = '<option value="" disabled selected>Selecione</option>';
+            armadorSelect.innerHTML = '<option value="" disabled selected>Selecione uma opção</option>';
             data.forEach(armador => {
                 const option = new Option(armador.nome, armador.id);
                 armadorSelect.add(option);
@@ -51,7 +61,6 @@
         formSelecao.addEventListener('submit', (e) => {
             e.preventDefault();
             const armadorId = armadorSelect.value;
-            // Busca o armador selecionado para garantir que temos todos os dados
             const armadorSelecionado = armadoresData.find(a => a.id == armadorId);
             
             if (armadorSelecionado) {

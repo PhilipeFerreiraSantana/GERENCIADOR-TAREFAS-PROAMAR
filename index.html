@@ -20,6 +20,7 @@
                 <a href="selecionar-armador.html" class="button">Gerenciar Tarefas</a>
                 <a href="cadastros.html" class="button">Cadastros</a>
                 <a href="relatorios.html" class="button">Relatórios Analíticos</a>
+                
                 <button id="logout-button" class="button excluir-button">Sair</button>
             </div>
         </section>
@@ -28,18 +29,26 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
     <script src="config.js"></script>
     <script src="auth-guard.js"></script>
+    <script src="user-display.js"></script>
+
     <script>
-        const logoutButton = document.getElementById('logout-button');
-        if (logoutButton) {
-            logoutButton.addEventListener('click', async () => {
-                const { error } = await supabase_client.auth.signOut();
-                if (error) {
-                    console.error('Erro ao fazer logout:', error);
-                } else {
-                    window.location.reload();
-                }
-            });
-        }
+        // Espera o documento HTML estar completamente carregado
+        document.addEventListener('DOMContentLoaded', () => {
+            const logoutButton = document.getElementById('logout-button');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', async () => {
+                    // Chama a função de logout do Supabase
+                    const { error } = await supabase_client.auth.signOut();
+
+                    if (error) {
+                        console.error('Erro ao fazer logout:', error);
+                    } else {
+                        // Recarrega a página. O auth-guard.js fará o redirecionamento para login.html
+                        window.location.reload();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

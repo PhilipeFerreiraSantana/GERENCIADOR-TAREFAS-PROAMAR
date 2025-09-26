@@ -15,28 +15,19 @@
     </header>
     <main>
         <div id="message-container"></div>
-        <section id="lista-tarefas-section">
-            <div id="loading-spinner">Carregando...</div>
-            <div id="tarefas-container"></div>
-        </section>
-        <div class="nav-buttons">
-            <a id="botao-voltar" href="index.html" class="button">Voltar</a>
-        </div>
+        <section id="lista-tarefas-section"><div id="loading-spinner">Carregando...</div><div id="tarefas-container"></div></section>
+        <div class="nav-buttons"><a id="botao-voltar" href="index.html" class="button">Voltar</a></div>
     </main>
-
     <div id="confirm-modal" class="modal">
         <div class="modal-content">
             <p>Tem certeza que quer marcar esta tarefa como excluída?</p>
-            <div class="modal-buttons">
-                <button id="confirm-yes" class="button excluir-button">Sim</button>
-                <button id="confirm-no" class="button alterar-button">Não</button>
-            </div>
+            <div class="modal-buttons"><button id="confirm-yes" class="button excluir-button">Sim</button><button id="confirm-no" class="button alterar-button">Não</button></div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
     <script src="config.js"></script>
     <script src="auth-guard.js"></script>
+    <script src="user-display.js"></script> <script></script>
     <script>
         const loadingSpinner = document.getElementById('loading-spinner');
         const tarefasContainer = document.getElementById('tarefas-container');
@@ -58,29 +49,26 @@
         async function carregarTarefasFiltradas() {
             loadingSpinner.style.display = 'block';
             tarefasContainer.innerHTML = '';
-
             const params = new URLSearchParams(window.location.search);
             const armadorId = parseInt(params.get('armadorId'), 10);
             const armadorNome = params.get('armadorNome');
             const logoUrl = params.get('logoUrl');
             const filtro = params.get('filtro');
-            
             const { data: { user } } = await supabase_client.auth.getUser();
 
-            if (!filtro || !user) {
-                loadingSpinner.textContent = "Erro: Filtro ou Usuário inválido.";
-                return;
+            if (!filtro || !user) { loadingSpinner.textContent = "Erro: Filtro ou Usuário inválido."; return; }
+
+            if (filtro === 'minhas_ativas' || filtro === 'pendencias') {
+                botaoVoltar.href = 'selecionar-armador.html';
+            } else {
+                botaoVoltar.href = `dashboard-armador.html?armadorId=${armadorId}&armadorNome=${encodeURIComponent(armadorNome)}&logoUrl=${encodeURIComponent(logoUrl)}`;
+            }
+            if (logoUrl && logoUrl !== 'null' && logoUrl !== '' && filtro !== 'minhas_ativas' && filtro !== 'pendencias') {
+                document.getElementById('logo-armador-img-lista').src = logoUrl;
+                document.getElementById('logo-armador-img-lista').style.display = 'block';
             }
 
-            botaoVoltar.href = `dashboard-armador.html?armadorId=${armadorId}&armadorNome=${encodeURIComponent(armadorNome)}&logoUrl=${encodeURIComponent(logoUrl)}`;
-
-            if (logoUrl && logoUrl !== 'null' && logoUrl !== '') {
-                const imgElement = document.getElementById('logo-armador-img-lista');
-                imgElement.src = logoUrl;
-                imgElement.style.display = 'block';
-            }
-
-            let query = supabase_client.from('tarefas').select(`*, portos(nome)`);
+            let query = supabase_client.from('tarefas').select(`*, portos(nome), profiles(alias)`);
             const hoje = new Date().toISOString();
 
             switch (filtro) {
@@ -98,50 +86,38 @@
                     break;
                 case 'pendencias':
                     tituloLista.textContent = "Minhas Pendências";
-                    const pendenciasFiltro = [
-                        `data_deadline.lt.${hoje}`, 'prioridade.eq.Alta', 'urlEvidencia.is.null',
-                        'protocolo.is.null', 'url_oficio.is.null', 'taxa_paga.eq.false'
-                    ].join(',');
+                    const pendenciasFiltro = [`data_deadline.lt.${hoje}`, 'prioridade.eq.Alta', 'urlEvidencia.is.null', 'protocolo.is.null', 'url_oficio.is.null', 'taxa_paga.eq.false'].join(',');
                     query = query.eq('user_id', user.id).eq('esta_excluida', false).neq('status', 'Finalizado').or(pendenciasFiltro);
                     break;
+                case 'minhas_ativas':
+                    tituloLista.textContent = "Minhas Tarefas Ativas";
+                    query = query.eq('user_id', user.id).eq('esta_excluida', false).neq('status', 'Finalizado');
+                    break;
                 default:
-                    loadingSpinner.textContent = "Filtro desconhecido.";
-                    return;
+                    loadingSpinner.textContent = "Filtro desconhecido."; return;
             }
 
             const { data: tarefas, error } = await query.order('dataInicio', { ascending: false });
-
-            if (error) {
-                loadingSpinner.textContent = "Erro ao buscar tarefas.";
-                console.error(error); // O erro detalhado aparecerá no console do navegador
-                return;
-            }
-
+            if (error) { loadingSpinner.textContent = "Erro ao buscar tarefas."; console.error(error); return; }
             renderizarTarefas(tarefas, filtro);
         }
 
         function renderizarTarefas(tarefas, filtro) {
             loadingSpinner.style.display = 'none';
-            if (!tarefas || tarefas.length === 0) {
-                tarefasContainer.innerHTML = '<p class="text-center">Nenhuma tarefa encontrada para este filtro.</p>';
-                return;
-            }
-            
+            if (!tarefas || tarefas.length === 0) { tarefasContainer.innerHTML = '<p class="text-center">Nenhuma tarefa encontrada.</p>'; return; }
             const table = document.createElement('table');
-            table.className = 'table w-full';
             table.innerHTML = `
-                <thead><tr><th>Cód.</th><th>Título</th><th>Porto</th><th>Status</th><th>Prioridade</th><th>Deadline</th><th>Ações</th></tr></thead>
+                <thead><tr><th>Cód.</th><th>Título</th><th>Responsável</th><th>Porto</th><th>Status</th><th>Ações</th></tr></thead>
                 <tbody>
                     ${tarefas.map(t => `
                         <tr>
                             <td>${t.codigo ? t.codigo.slice(-4) : 'N/A'}</td>
                             <td><a href="detalhar-tarefa.html?id=${t.id}" class="detalhe-link">${t.titulo}</a></td>
+                            <td>${t.profiles ? t.profiles.alias : 'N/A'}</td>
                             <td>${t.portos ? t.portos.nome : 'N/A'}</td>
                             <td>${t.status}</td>
-                            <td>${t.prioridade || 'Normal'}</td>
-                            <td>${formatarData(t.data_deadline)}</td>
                             <td class="actions-cell">
-                                ${filtro !== 'excluidas' ? `<a href="editar-tarefa.html?id=${t.id}" class="action-button alterar-button">Alterar</a>` : ''}
+                                <a href="editar-tarefa.html?id=${t.id}" class="action-button alterar-button">Alterar</a>
                                 ${filtro !== 'excluidas' ? `<button class="action-button excluir-button" data-id="${t.id}">Excluir</button>` : ''}
                             </td>
                         </tr>
@@ -150,34 +126,20 @@
             `;
             tarefasContainer.appendChild(table);
         }
-
         tarefasContainer.addEventListener('click', (e) => {
             const targetButton = e.target.closest('.excluir-button');
-            if (targetButton) {
-                tarefaIdParaExcluir = targetButton.dataset.id;
-                if (confirmModal) confirmModal.style.display = 'block';
-            }
+            if (targetButton) { tarefaIdParaExcluir = targetButton.dataset.id; if (confirmModal) confirmModal.style.display = 'block'; }
         });
-
         confirmYes.addEventListener('click', async () => {
             if (tarefaIdParaExcluir) {
                 const { error } = await supabase_client.from('tarefas').update({ esta_excluida: true }).eq('id', tarefaIdParaExcluir);
-                if (error) {
-                    showMessage(`Erro ao excluir tarefa: ${error.message}`, false);
-                } else {
-                    showMessage("Tarefa marcada como excluída com sucesso!", true);
-                    carregarTarefasFiltradas();
-                }
+                if (error) { showMessage(`Erro ao excluir: ${error.message}`, false); }
+                else { showMessage("Tarefa excluída.", true); carregarTarefasFiltradas(); }
             }
             if (confirmModal) confirmModal.style.display = 'none';
             tarefaIdParaExcluir = null;
         });
-
-        confirmNo.addEventListener('click', () => {
-            if (confirmModal) confirmModal.style.display = 'none';
-            tarefaIdParaExcluir = null;
-        });
-
+        confirmNo.addEventListener('click', () => { if (confirmModal) confirmModal.style.display = 'none'; tarefaIdParaExcluir = null; });
         document.addEventListener('DOMContentLoaded', carregarTarefasFiltradas);
     </script>
 </body>
