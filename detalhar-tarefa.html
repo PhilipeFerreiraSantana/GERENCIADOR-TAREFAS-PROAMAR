@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes da Tarefa</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Detalhes da Tarefa</h1>
+    </header>
+
+    <main>
+        <section id="detalhes-tarefa-container">
+            <div id="loading-details">Carregando detalhes...</div>
+        </section>
+        
+        <div class="nav-buttons">
+            <button onclick="history.back()" class="button">Voltar</button>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="nova-tarefa.js"></script> </body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Tarefas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Gerenciador de Tarefas</h1>
+    </header>
+
+    <main class="home-main">
+        <section class="home-section">
+            <img src="Proamar-Logo.png" alt="Logo da PROAMAR" class="logo">
+            <p>Selecione uma opção para gerenciar suas tarefas.</p>
+            <div class="home-buttons">
+                <a href="nova-tarefa.html" class="button">Criar Nova Tarefa</a>
+                <a href="selecionar-armador.html" class="button">Gerenciar Tarefas</a>
+                <a href="cadastros.html" class="button">Cadastros</a>
+                <a href="relatorios.html" class="button">Relatórios Analíticos</a>
+                <button id="logout-button" class="button excluir-button">Sair</button>
+            </div>
+        </section>
+    </main>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script>
+        const logoutButton = document.getElementById('logout-button');
+        if (logoutButton) {
+            logoutButton.addEventListener('click', async () => {
+                const { error } = await supabase_client.auth.signOut();
+                if (error) {
+                    console.error('Erro ao fazer logout:', error);
+                } else {
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

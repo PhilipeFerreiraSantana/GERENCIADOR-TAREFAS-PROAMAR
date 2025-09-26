@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciar Usuários</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        #lista-usuarios-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        #lista-usuarios-container th,
+        #lista-usuarios-container td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: middle;
+        }
+        #lista-usuarios-container th {
+            background-color: #f8f8f8;
+            font-weight: bold;
+        }
+        #lista-usuarios-container tr:nth-of-type(even) {
+            background-color: #fdfdfd;
+        }
+        #lista-usuarios-container tr:hover {
+            background-color: #f1f1f1;
+        }
+        #lista-usuarios-container td:last-child {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Gerenciar Usuários e Permissões</h1>
+    </header>
+    <main>
+        <div id="message-container"></div>
+        <section id="lista-section" class="p-4">
+            <h2>Usuários Cadastrados</h2>
+            <p>Clique em um usuário para gerenciar a quais armadores ele tem acesso.</p>
+            <div id="loading-spinner">Carregando...</div>
+            <div id="lista-usuarios-container"></div>
+        </section>
+        <div class="nav-buttons">
+            <a href="cadastros.html" class="button">Voltar para o Menu de Cadastros</a>
+        </div>
+    </main>
+
+    <div id="permissoes-modal" class="modal">
+        <div class="modal-content">
+            <h3 id="modal-titulo">Permissões para...</h3>
+            <div id="armadores-checkboxes">Carregando armadores...</div>
+            <div class="modal-buttons">
+                <button id="salvar-permissoes" class="button">Salvar</button>
+                <button id="cancelar-permissoes" class="button excluir-button">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script src="admin-guard.js"></script>
+    <script>
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const listaContainer = document.getElementById('lista-usuarios-container');
+        const modal = document.getElementById('permissoes-modal');
+        const modalTitulo = document.getElementById('modal-titulo');
+        const checkboxesContainer = document.getElementById('armadores-checkboxes');
+        let usuarioSelecionadoId = null;
+
+        async function listarUsuarios() {
+            loadingSpinner.style.display = 'block';
+            
+            const { data: users, error } = await supabase_client
+                .from('profiles')
+                .select('id, role, email');
+
+            if (error) {
+                showMessage('Erro ao carregar usuários.', false);
+                console.error(error);
+                loadingSpinner.style.display = 'none';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.innerHTML = `
+                <thead><tr><th>Email</th><th>Função (Role)</th><th>Ações</th></tr></thead>
+                <tbody>
+                    ${users.map(user => `
+                        <tr>
+                            <td>${user.email || 'Email não disponível'}</td>
+                            <td>${user.role}</td>
+                            <td>
+                                <button class="action-button alterar-button" onclick="abrirModal('${user.id}', '${user.email}')">Gerenciar Permissões</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            listaContainer.innerHTML = '';
+            listaContainer.appendChild(table);
+            loadingSpinner.style.display = 'none';
+        }
+
+        async function abrirModal(userId, userEmail) {
+            usuarioSelecionadoId = userId;
+            modalTitulo.textContent = `Permissões para: ${userEmail}`;
+            modal.style.display = 'block';
+            checkboxesContainer.innerHTML = 'Carregando...';
+
+            const { data: armadores, error: armadoresError } = await supabase_client.from('armadores').select('id, nome').order('nome');
+            const { data: permissoes, error: permissoesError } = await supabase_client.from('user_armador_permissions').select('armador_id').eq('user_id', userId);
+
+            if (armadoresError || permissoesError) {
+                checkboxesContainer.innerHTML = 'Erro ao carregar dados.';
+                return;
+            }
+
+            const permissoesAtuais = permissoes.map(p => p.armador_id);
+            
+            checkboxesContainer.innerHTML = armadores.map(armador => `
+                <div class="checkbox-item">
+                    <input type="checkbox" id="armador-${armador.id}" value="${armador.id}" ${permissoesAtuais.includes(armador.id) ? 'checked' : ''}>
+                    <label for="armador-${armador.id}">${armador.nome}</label>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('salvar-permissoes').addEventListener('click', async () => {
+            const checkboxes = checkboxesContainer.querySelectorAll('input[type="checkbox"]:checked');
+            const novasPermissoes = Array.from(checkboxes).map(cb => ({
+                user_id: usuarioSelecionadoId,
+                armador_id: parseInt(cb.value)
+            }));
+
+            const { error: deleteError } = await supabase_client.from('user_armador_permissions').delete().eq('user_id', usuarioSelecionadoId);
+
+            if (deleteError) {
+                showMessage('Erro ao atualizar permissões.', false);
+                return;
+            }
+
+            if (novasPermissoes.length > 0) {
+                const { error: insertError } = await supabase_client.from('user_armador_permissions').insert(novasPermissoes);
+                if (insertError) {
+                    showMessage('Erro ao salvar novas permissões.', false);
+                    return;
+                }
+            }
+            
+            showMessage('Permissões atualizadas com sucesso!', true);
+            modal.style.display = 'none';
+        });
+
+        document.getElementById('cancelar-permissoes').addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        document.addEventListener('DOMContentLoaded', listarUsuarios);
+    </script>
+</body>
+</html>

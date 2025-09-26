@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Tarefas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div id="dashboard-header" style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap;">
+            <img id="logo-armador-img" src="" alt="Logo do Armador" style="height: 60px; display: none; border-radius: 8px;">
+            <h1 id="titulo-dashboard">Carregando...</h1>
+        </div>
+    </header>
+    <main class="home-main">
+        <section class="home-section">
+            <div id="botoes-dashboard" class="home-buttons">
+                </div>
+        </section>
+        <div class="nav-buttons">
+            <a href="selecionar-armador.html" class="button">Voltar</a>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script>
+        window.onload = () => {
+            const params = new URLSearchParams(window.location.search);
+            const armadorId = params.get('armadorId');
+            const armadorNome = params.get('armadorNome');
+            const logoUrl = params.get('logoUrl');
+
+            if (!armadorId || !armadorNome) {
+                document.getElementById('titulo-dashboard').textContent = "Erro: Armador não selecionado";
+                return;
+            }
+
+            document.getElementById('titulo-dashboard').textContent = `Tarefas (${armadorNome})`;
+            
+            if (logoUrl && logoUrl !== 'null' && logoUrl !== '') {
+                const imgElement = document.getElementById('logo-armador-img');
+                imgElement.src = logoUrl;
+                imgElement.style.display = 'block';
+            }
+            
+            const containerBotoes = document.getElementById('botoes-dashboard');
+            const encodedArmadorNome = encodeURIComponent(armadorNome);
+            // ===== CORREÇÃO APLICADA AQUI =====
+            const encodedLogoUrl = encodeURIComponent(logoUrl);
+
+            // Agora, todos os links carregam a informação do logoUrl
+            containerBotoes.innerHTML = `
+                <a href="lista-tarefas.html?armadorId=${armadorId}&armadorNome=${encodedArmadorNome}&logoUrl=${encodedLogoUrl}&filtro=ativas" class="button">Tarefas Ativas</a>
+                <a href="lista-tarefas.html?armadorId=${armadorId}&armadorNome=${encodedArmadorNome}&logoUrl=${encodedLogoUrl}&filtro=finalizadas" class="button">Finalizadas</a>
+                <a href="lista-tarefas.html?armadorId=${armadorId}&armadorNome=${encodedArmadorNome}&logoUrl=${encodedLogoUrl}&filtro=excluidas" class="button">Tarefas Excluídas</a>
+                <a href="lista-tarefas.html?armadorId=${armadorId}&armadorNome=${encodedArmadorNome}&logoUrl=${encodedLogoUrl}&filtro=pendencias" class="button alterar-button">Minhas Pendências</a>
+            `;
+        };
+    </script>
+</body>
+</html>

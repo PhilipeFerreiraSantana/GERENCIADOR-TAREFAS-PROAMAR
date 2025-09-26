@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Tipos de Tarefa</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Cadastro de Tipos de Tarefa</h1>
+    </header>
+
+    <main>
+        <div id="message-container"></div>
+
+        <section id="formulario-section" class="p-4">
+            <form id="form-tipo">
+                <input type="hidden" id="tipo-id">
+                <div class="form-group">
+                    <label for="nome-tipo">Nome do Tipo de Tarefa:</label>
+                    <input type="text" id="nome-tipo" placeholder="Ex: PASSE DE SAÍDA" required>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="button">Salvar</button>
+                    <button type="button" id="cancelar-edicao" class="button" style="display:none;">Cancelar Edição</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="lista-section" class="p-4">
+            <h2>Tipos de Tarefa Cadastrados</h2>
+            <div id="loading-spinner">Carregando...</div>
+            <div id="lista-tipos-container"></div>
+        </section>
+
+        <div class="nav-buttons">
+            <a href="cadastros.html" class="button">Voltar para o Menu de Cadastros</a>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://xjhongbhakhyjsluudbp.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqaG9uZ2JoYWtoeWpzbHV1ZGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NDk0NjcsImV4cCI6MjA3NDIyNTQ2N30.yLro4ZFi-wF8HtaCLgu9BYbyinH-_la_heFxWDEtcPs';
+        const supabase_client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const formTipo = document.getElementById('form-tipo');
+        const inputId = document.getElementById('tipo-id');
+        const inputNome = document.getElementById('nome-tipo');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const listaContainer = document.getElementById('lista-tipos-container');
+        const messageContainer = document.getElementById('message-container');
+        const btnCancelarEdicao = document.getElementById('cancelar-edicao');
+
+        window.onload = () => {
+            listarTipos();
+        };
+
+        async function listarTipos() {
+            loadingSpinner.style.display = 'block';
+            listaContainer.innerHTML = '';
+
+            const { data, error } = await supabase_client
+                .from('tipos_tarefa')
+                .select('*')
+                .order('nome', { ascending: true });
+
+            if (error) {
+                console.error("Erro ao buscar tipos de tarefa:", error);
+                showMessage("Erro ao carregar a lista.", false);
+                loadingSpinner.style.display = 'none';
+                return;
+            }
+
+            if (data.length === 0) {
+                listaContainer.innerHTML = '<p>Nenhum tipo de tarefa cadastrado.</p>';
+            } else {
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(tipo => `
+                            <tr>
+                                <td>${tipo.nome}</td>
+                                <td>
+                                    <button class="action-button alterar-button" onclick="iniciarEdicao(${tipo.id}, '${tipo.nome}')">Editar</button>
+                                    <button class="action-button excluir-button" onclick="excluirTipo(${tipo.id})">Excluir</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                listaContainer.appendChild(table);
+            }
+            loadingSpinner.style.display = 'none';
+        }
+
+        formTipo.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = inputNome.value.trim();
+            const id = inputId.value;
+
+            if (id) {
+                const { error } = await supabase_client
+                    .from('tipos_tarefa')
+                    .update({ nome: nome })
+                    .eq('id', id);
+                if (error) showMessage("Erro ao atualizar o tipo de tarefa.", false);
+                else showMessage("Tipo de tarefa atualizado com sucesso!", true);
+            } else {
+                const { error } = await supabase_client
+                    .from('tipos_tarefa')
+                    .insert([{ nome: nome }]);
+                if (error) showMessage("Erro ao salvar o tipo de tarefa.", false);
+                else showMessage("Tipo de tarefa salvo com sucesso!", true);
+            }
+            resetarFormulario();
+            listarTipos();
+        });
+
+        function iniciarEdicao(id, nome) {
+            inputId.value = id;
+            inputNome.value = nome;
+            btnCancelarEdicao.style.display = 'inline-block';
+            window.scrollTo(0, 0);
+        }
+
+        async function excluirTipo(id) {
+            if (confirm('Tem certeza que deseja excluir este tipo de tarefa?')) {
+                const { error } = await supabase_client
+                    .from('tipos_tarefa')
+                    .delete()
+                    .eq('id', id);
+                if (error) showMessage("Erro ao excluir o tipo de tarefa.", false);
+                else showMessage("Tipo de tarefa excluído com sucesso!", true);
+                listarTipos();
+            }
+        }
+        
+        function resetarFormulario() {
+            formTipo.reset();
+            inputId.value = '';
+            btnCancelarEdicao.style.display = 'none';
+        }
+
+        btnCancelarEdicao.addEventListener('click', resetarFormulario);
+
+        function showMessage(message, isSuccess) {
+            messageContainer.textContent = message;
+            messageContainer.className = isSuccess ? 'message-success' : 'message-error';
+            messageContainer.style.display = 'block';
+            setTimeout(() => {
+                messageContainer.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script> </body>
+</html>

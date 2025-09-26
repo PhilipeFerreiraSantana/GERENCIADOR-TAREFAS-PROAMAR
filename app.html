@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Tarefas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#dc3545',
+                        primary_dark: '#c82333',
+                        secondary: '#6c757d',
+                        background: '#f4f4f4',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        .loading-animation {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #dc3545;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-background font-sans text-gray-800 flex flex-col min-h-screen">
+    <header class="bg-primary text-white p-4 text-center shadow-lg">
+        <h1 class="text-3xl font-bold">Gerenciador de Tarefas</h1>
+    </header>
+
+    <main class="container mx-auto p-4 flex-grow">
+        <section class="bg-white p-6 rounded-lg shadow-xl mb-6">
+            <h2 class="text-2xl font-bold text-primary mb-4">Criar Nova Tarefa</h2>
+            <div id="message-container" class="hidden fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg font-bold text-white z-50"></div>
+            
+            <form id="formulario-tarefa" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col">
+                    <label for="titulo-tarefa" class="text-sm font-semibold mb-1">Título da Tarefa:</label>
+                    <input type="text" id="titulo-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none" required>
+                </div>
+                <div class="flex flex-col">
+                    <label for="porto-tarefa" class="text-sm font-semibold mb-1">Porto:</label>
+                    <select id="porto-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none" required>
+                        <option value="" disabled selected>Selecione um porto</option>
+                        <option value="Santos">Santos</option>
+                        <option value="Paranaguá">Paranaguá</option>
+                        <option value="Rio de Janeiro">Rio de Janeiro</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <label for="armador-tarefa" class="text-sm font-semibold mb-1">Armador:</label>
+                    <select id="armador-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none" required>
+                        <option value="" disabled selected>Selecione um armador</option>
+                        <option value="BRAM">BRAM</option>
+                        <option value="CBO">CBO</option>
+                        <option value="STARNAV">STARNAV</option>
+                        <option value="TRANSHIP">TRANSHIP</option>
+                        <option value="CMM">CMM</option>
+                        <option value="THYSSENKRUP">THYSSENKRUP</option>
+                        <option value="DRACARES">DRACARES</option>
+                        <option value="VSHIPS">VSHIPS</option>
+                        <option value="BOURBON">BOURBON</option>
+                        <option value="SDC">SDC</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <label for="embarcacao-tarefa" class="text-sm font-semibold mb-1">Embarcação (Nome):</label>
+                    <input type="text" id="embarcacao-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none">
+                </div>
+                <div class="flex flex-col">
+                    <label for="solicitante-tarefa" class="text-sm font-semibold mb-1">Solicitante (Nome):</label>
+                    <input type="text" id="solicitante-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none">
+                </div>
+                <div class="flex flex-col">
+                    <label for="tipo-tarefa" class="text-sm font-semibold mb-1">Tipo da Tarefa:</label>
+                    <select id="tipo-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none" required>
+                        <option value="" disabled selected>Selecione um tipo</option>
+                        <option value="PASSE DE SAÍDA">PASSE DE SAÍDA</option>
+                        <option value="CTS">CTS</option>
+                        <option value="PORTSTATE">PORTSTATE</option>
+                        <option value="ROL DE EQUIPAGEM">ROL DE EQUIPAGEM</option>
+                        <option value="ANATEL">ANATEL</option>
+                        <option value="AVISO AOS NAVEGANTES">AVISO AOS NAVEGANTES</option>
+                        <option value="NADA OPOR">NADA OPOR</option>
+                        <option value="LIC. CAT. SUP.">LIC. CAT. SUP.</option>
+                        <option value="DPC">DPC</option>
+                    </select>
+                </div>
+                <div class="flex flex-col">
+                    <label for="data-inicio-tarefa" class="text-sm font-semibold mb-1">Data de Início:</label>
+                    <input type="date" id="data-inicio-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none" required>
+                </div>
+                <div class="flex flex-col">
+                    <label for="protocolo-tarefa" class="text-sm font-semibold mb-1">Protocolo:</label>
+                    <input type="text" id="protocolo-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none">
+                </div>
+                <div class="flex flex-col">
+                    <label for="status-tarefa" class="text-sm font-semibold mb-1">Status:</label>
+                    <select id="status-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none" required>
+                        <option value="Não Iniciado" selected>Não Iniciado</option>
+                        <option value="Andamento">Andamento</option>
+                        <option value="Exigência">Exigência</option>
+                        <option value="Finalizado">Finalizado</option>
+                    </select>
+                </div>
+                <div class="flex flex-col" id="data-fim-container">
+                    <label for="data-fim-tarefa" class="text-sm font-semibold mb-1">Data do Fim:</label>
+                    <input type="date" id="data-fim-tarefa" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none">
+                </div>
+                <div class="flex flex-col md:col-span-2">
+                    <label for="observacoes-tarefa" class="text-sm font-semibold mb-1">Observações:</label>
+                    <textarea id="observacoes-tarefa" rows="4" class="p-2 border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"></textarea>
+                </div>
+                <div class="md:col-span-2 text-center">
+                    <button type="submit" class="bg-primary text-white font-bold py-2 px-6 rounded-md hover:bg-primary_dark transition duration-300">
+                        Adicionar Tarefa
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="bg-white p-6 rounded-lg shadow-xl">
+            <h2 class="text-2xl font-bold text-primary mb-4">Tarefas em Andamento</h2>
+            <div id="loading-spinner" class="flex justify-center items-center py-8">
+                <div class="loading-animation"></div>
+            </div>
+            <div id="tarefas-container" class="grid grid-cols-1 gap-4">
+            </div>
+        </section>
+    </main>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variáveis de ambiente fornecidas pelo Canvas
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSfSL7HzMBh5JhoM1XWCLuOzg8SwHkFwQ",
+            authDomain: "gerenciador-de-tarefas-proamar.firebaseapp.com",
+            projectId: "gerenciador-de-tarefas-proamar",
+            storageBucket: "gerenciador-de-tarefas-proamar.firebasestorage.app",
+            messagingSenderId: "185497290935",
+            appId: "1:185497290935:web:3eea3ae2d5e9b1c117a532",
+            measurementId: "G-ZFKTXL6MZE"
+        };
+        const appId = 'default-app-id';
+
+        const app = initializeApp(firebaseConfig, appId);
+        const db = getFirestore(app);
+
+        // Referências para os elementos do DOM
+        const formulario = document.getElementById('formulario-tarefa');
+        const tarefasContainer = document.getElementById('tarefas-container');
+        const dataFimContainer = document.getElementById('data-fim-container');
+        const statusTarefa = document.getElementById('status-tarefa');
+        const messageContainer = document.getElementById('message-container');
+        const loadingSpinner = document.getElementById('loading-spinner');
+
+        // Esconde o campo "Data do Fim" no início
+        dataFimContainer.style.display = 'none';
+
+        // Oculta/exibe o campo Data do Fim com base no status
+        statusTarefa.addEventListener('change', () => {
+            dataFimContainer.style.display = (statusTarefa.value === 'Finalizado') ? 'flex' : 'none';
+        });
+
+        // Adiciona um listener para o formulário
+        formulario.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const novaTarefa = {
+                titulo: document.getElementById('titulo-tarefa').value,
+                porto: document.getElementById('porto-tarefa').value,
+                armador: document.getElementById('armador-tarefa').value,
+                embarcacao: document.getElementById('embarcacao-tarefa').value,
+                solicitante: document.getElementById('solicitante-tarefa').value,
+                tipo: document.getElementById('tipo-tarefa').value,
+                dataInicio: document.getElementById('data-inicio-tarefa').value,
+                protocolo: document.getElementById('protocolo-tarefa').value,
+                status: document.getElementById('status-tarefa').value,
+                dataFim: document.getElementById('data-fim-tarefa').value,
+                observacoes: document.getElementById('observacoes-tarefa').value,
+                codigo: `TASK-${Date.now()}`
+            };
+
+            try {
+                await addDoc(collection(db, "tarefas"), novaTarefa);
+                showMessage("Tarefa criada com sucesso!", true);
+                formulario.reset();
+            } catch (error) {
+                console.error("Erro ao adicionar documento: ", error);
+                showMessage("Erro ao criar a tarefa. Verifique as regras do banco de dados.", false);
+            }
+        });
+
+        // Adiciona um listener para atualizar a lista de tarefas em tempo real
+        window.onload = function() {
+            const q = query(collection(db, "tarefas"), orderBy("codigo", "desc"));
+            onSnapshot(q, (querySnapshot) => {
+                const tarefas = [];
+                querySnapshot.forEach((doc) => {
+                    tarefas.push({ id: doc.id, ...doc.data() });
+                });
+                renderizarTarefas(tarefas);
+            });
+        };
+
+        // Função para renderizar as tarefas
+        function renderizarTarefas(tarefas) {
+            loadingSpinner.classList.add('hidden');
+            tarefasContainer.innerHTML = '';
+            if (tarefas.length === 0) {
+                tarefasContainer.innerHTML = '<p class="text-center text-secondary">Nenhuma tarefa encontrada.</p>';
+                return;
+            }
+
+            tarefas.forEach(tarefa => {
+                const tarefaElemento = document.createElement('div');
+                tarefaElemento.classList.add('p-4', 'bg-gray-50', 'rounded-lg', 'shadow', 'border-l-4', 'border-primary');
+                tarefaElemento.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-semibold text-lg">${tarefa.titulo}</h3>
+                        <span class="text-sm text-gray-500">#${tarefa.codigo}</span>
+                    </div>
+                    <p class="text-sm"><strong>Porto:</strong> ${tarefa.porto}</p>
+                    <p class="text-sm"><strong>Armador:</strong> ${tarefa.armador}</p>
+                    <p class="text-sm"><strong>Embarcação:</strong> ${tarefa.embarcacao || 'N/A'}</p>
+                    <p class="text-sm"><strong>Solicitante:</strong> ${tarefa.solicitante || 'N/A'}</p>
+                    <p class="text-sm"><strong>Tipo:</strong> ${tarefa.tipo}</p>
+                    <p class="text-sm"><strong>Data de Início:</strong> ${formatarData(tarefa.dataInicio)}</p>
+                    <p class="text-sm"><strong>Status:</strong> <span class="font-semibold text-primary">${tarefa.status}</span></p>
+                    <p class="text-sm"><strong>Protocolo:</strong> ${tarefa.protocolo || 'N/A'}</p>
+                    ${tarefa.dataFim ? `<p class="text-sm"><strong>Data do Fim:</strong> ${formatarData(tarefa.dataFim)}</p>` : ''}
+                    ${tarefa.observacoes ? `<p class="text-sm"><strong>Observações:</strong> ${tarefa.observacoes}</p>` : ''}
+                `;
+                tarefasContainer.appendChild(tarefaElemento);
+            });
+        }
+
+        // Função para formatar a data
+        function formatarData(dataString) {
+            if (!dataString) return 'N/A';
+            const [ano, mes, dia] = dataString.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        // Função para mostrar mensagens de notificação
+        function showMessage(message, isSuccess) {
+            messageContainer.textContent = message;
+            messageContainer.className = `fixed top-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg font-bold text-white z-50 transition-all duration-300 ${isSuccess ? 'bg-green-500' : 'bg-red-500'}`;
+            messageContainer.classList.remove('hidden');
+            setTimeout(() => {
+                messageContainer.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script> </body>
+</html>

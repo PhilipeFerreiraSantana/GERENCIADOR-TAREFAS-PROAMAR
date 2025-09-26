@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Embarcações</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Cadastro de Embarcações (Navios)</h1>
+    </header>
+
+    <main>
+        <div id="message-container"></div>
+
+        <section id="formulario-section" class="p-4">
+            <form id="form-embarcacao">
+                <input type="hidden" id="embarcacao-id">
+                <div class="form-group">
+                    <label for="armador-select">Armador (Cliente):</label>
+                    <select id="armador-select" required>
+                        <option value="" disabled selected>Carregando armadores...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="nome-embarcacao">Nome da Embarcação:</label>
+                    <input type="text" id="nome-embarcacao" placeholder="Digite o nome do navio" required>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="button">Salvar</button>
+                    <button type="button" id="cancelar-edicao" class="button" style="display:none;">Cancelar Edição</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="lista-section" class="p-4">
+            <h2>Embarcações Cadastradas</h2>
+            <div id="loading-spinner">Carregando...</div>
+            <div id="lista-embarcacoes-container"></div>
+        </section>
+
+        <div class="nav-buttons">
+            <a href="cadastros.html" class="button">Voltar para o Menu de Cadastros</a>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script>
+        const SUPABASE_URL = 'https://xjhongbhakhyjsluudbp.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhqaG9uZ2JoYWtoeWpzbHV1ZGJwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NDk0NjcsImV4cCI6MjA3NDIyNTQ2N30.yLro4ZFi-wF8HtaCLgu9BYbyinH-_la_heFxWDEtcPs';
+        const supabase_client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const form = document.getElementById('form-embarcacao');
+        const inputId = document.getElementById('embarcacao-id');
+        const inputNome = document.getElementById('nome-embarcacao');
+        const armadorSelect = document.getElementById('armador-select');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const listaContainer = document.getElementById('lista-embarcacoes-container');
+        const messageContainer = document.getElementById('message-container');
+        const btnCancelarEdicao = document.getElementById('cancelar-edicao');
+
+        // Carrega os dados iniciais da página
+        window.onload = () => {
+            carregarArmadores();
+            listarEmbarcacoes();
+        };
+
+        // Carrega a lista de armadores para o dropdown
+        async function carregarArmadores() {
+            const { data, error } = await supabase_client.from('armadores').select('id, nome').order('nome');
+            if (error) {
+                console.error("Erro ao carregar armadores:", error);
+                armadorSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+                return;
+            }
+            armadorSelect.innerHTML = '<option value="" disabled selected>Selecione um armador</option>';
+            data.forEach(armador => {
+                const option = document.createElement('option');
+                option.value = armador.id;
+                option.textContent = armador.nome;
+                armadorSelect.appendChild(option);
+            });
+        }
+
+        // Busca e exibe as embarcações
+        async function listarEmbarcacoes() {
+            loadingSpinner.style.display = 'block';
+            listaContainer.innerHTML = '';
+            // Usamos a sintaxe 'armadores(nome)' para buscar o nome da tabela relacionada
+            const { data, error } = await supabase_client
+                .from('embarcacoes')
+                .select('*, armadores(nome)')
+                .order('nome', { ascending: true });
+
+            if (error) {
+                console.error("Erro ao buscar embarcações:", error);
+                showMessage("Erro ao carregar a lista.", false);
+                return;
+            }
+
+            if (data.length === 0) {
+                listaContainer.innerHTML = '<p>Nenhuma embarcação cadastrada.</p>';
+            } else {
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Nome da Embarcação</th>
+                            <th>Armador</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(item => `
+                            <tr>
+                                <td>${item.nome}</td>
+                                <td>${item.armadores.nome}</td>
+                                <td>
+                                    <button class="action-button alterar-button" onclick="iniciarEdicao(${item.id}, '${item.nome}', ${item.armador_id})">Editar</button>
+                                    <button class="action-button excluir-button" onclick="excluirItem(${item.id})">Excluir</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                listaContainer.appendChild(table);
+            }
+            loadingSpinner.style.display = 'none';
+        }
+
+        // Adiciona ou atualiza uma embarcação
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = inputNome.value.trim();
+            const armador_id = armadorSelect.value;
+            const id = inputId.value;
+
+            const dados = { nome, armador_id };
+
+            if (id) { // Editando
+                const { error } = await supabase_client.from('embarcacoes').update(dados).eq('id', id);
+                if (error) showMessage("Erro ao atualizar.", false);
+                else showMessage("Embarcação atualizada com sucesso!", true);
+            } else { // Criando
+                const { error } = await supabase_client.from('embarcacoes').insert([dados]);
+                if (error) showMessage("Erro ao salvar.", false);
+                else showMessage("Embarcação salva com sucesso!", true);
+            }
+            resetarFormulario();
+            listarEmbarcacoes();
+        });
+        
+        // Exclui uma embarcação
+        async function excluirItem(id) {
+            if (confirm('Tem certeza que deseja excluir esta embarcação?')) {
+                const { error } = await supabase_client.from('embarcacoes').delete().eq('id', id);
+                if (error) showMessage("Erro ao excluir. Verifique se não está em uso.", false);
+                else showMessage("Embarcação excluída com sucesso!", true);
+                listarEmbarcacoes();
+            }
+        }
+        
+        // Prepara o formulário para edição
+        function iniciarEdicao(id, nome, armador_id) {
+            inputId.value = id;
+            inputNome.value = nome;
+            armadorSelect.value = armador_id;
+            btnCancelarEdicao.style.display = 'inline-block';
+            window.scrollTo(0, 0);
+        }
+
+        function resetarFormulario() {
+            form.reset();
+            inputId.value = '';
+            btnCancelarEdicao.style.display = 'none';
+        }
+
+        btnCancelarEdicao.addEventListener('click', resetarFormulario);
+
+        function showMessage(message, isSuccess) {
+            messageContainer.textContent = message;
+            messageContainer.className = isSuccess ? 'message-success' : 'message-error';
+            messageContainer.style.display = 'block';
+            setTimeout(() => { messageContainer.style.display = 'none'; }, 3000);
+        }
+    </script>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script> </body>
+</html>

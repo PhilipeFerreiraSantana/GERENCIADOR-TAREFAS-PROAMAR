@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Tarefas</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+
+    <header>
+        <h1>Alterar Tarefa</h1>
+    </header>
+
+    <main>
+        <div id="message-container"></div>
+        <section id="lista-tarefas">
+            <h2>Tarefas Ativas</h2>
+            <div id="loading-spinner">Carregando tarefas...</div>
+            <div id="tarefas-container">
+                </div>
+        </section>
+        <div class="nav-buttons">
+            <a href="index.html" class="button">Voltar para a Página Inicial</a>
+        </div>
+    </main>
+
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <p>Tem certeza que quer excluir esta tarefa?</p>
+            <div class="modal-buttons">
+                <button id="confirm-yes" class="button excluir-button">Sim</button>
+                <button id="confirm-no" class="button alterar-button">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="nova-tarefa.js"></script>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script> </body>
+</html>

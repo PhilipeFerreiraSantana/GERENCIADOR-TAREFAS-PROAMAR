@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gerenciador de Tarefas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Gerenciador de Tarefas</h1>
+    </header>
+    <main>
+        <div id="message-container"></div>
+        <section class="p-4">
+            <form id="form-login" class="form-group" style="max-width: 400px; margin: 2rem auto;">
+                <h2 class="text-center">Acessar o Sistema</h2>
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+                <label for="password">Senha:</label>
+                <input type="password" id="password" required>
+                <div class="text-center" style="margin-top: 1rem;">
+                    <button type="submit" class="button">Entrar</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script>
+        const formLogin = document.getElementById('form-login');
+
+        formLogin.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const { data, error } = await supabase_client.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                showMessage('Email ou senha inválidos.', false);
+            } else {
+                // Login bem-sucedido, redireciona para a página principal
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

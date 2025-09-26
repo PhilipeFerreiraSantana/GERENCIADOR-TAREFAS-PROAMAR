@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selecionar Armador</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header><h1>Gerenciar Tarefas</h1></header>
+    <main>
+        <section class="p-4">
+            <h2 class="text-center">Selecione um Armador</h2>
+            <form id="form-selecao" class="form-group" style="max-width: 400px; margin: 2rem auto;">
+                <label for="armador-select">Armador (Cliente):</label>
+                <select id="armador-select" required>
+                    <option value="" disabled selected>Carregando...</option>
+                </select>
+                <div class="text-center" style="margin-top: 1rem;">
+                    <button type="submit" class="button">Avançar</button>
+                </div>
+            </form>
+        </section>
+        <div class="nav-buttons">
+            <a href="index.html" class="button">Voltar para a Página Inicial</a>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script>
+        const armadorSelect = document.getElementById('armador-select');
+        const formSelecao = document.getElementById('form-selecao');
+        let armadoresData = [];
+
+        async function carregarArmadores() {
+            const { data, error } = await supabase_client.from('armadores').select('id, nome, logo_url').order('nome');
+            if (error) {
+                armadorSelect.innerHTML = '<option>Erro ao carregar</option>';
+                return;
+            }
+            
+            armadoresData = data;
+            armadorSelect.innerHTML = '<option value="" disabled selected>Selecione</option>';
+            data.forEach(armador => {
+                const option = new Option(armador.nome, armador.id);
+                armadorSelect.add(option);
+            });
+        }
+
+        formSelecao.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const armadorId = armadorSelect.value;
+            // Busca o armador selecionado para garantir que temos todos os dados
+            const armadorSelecionado = armadoresData.find(a => a.id == armadorId);
+            
+            if (armadorSelecionado) {
+                const armadorNome = armadorSelecionado.nome;
+                const logoUrl = armadorSelecionado.logo_url || '';
+                window.location.href = `dashboard-armador.html?armadorId=${armadorId}&armadorNome=${encodeURIComponent(armadorNome)}&logoUrl=${encodeURIComponent(logoUrl)}`;
+            }
+        });
+
+        window.onload = carregarArmadores;
+    </script>
+</body>
+</html>

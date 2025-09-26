@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar Nova Tarefa</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Criar Nova Tarefa</h1>
+    </header>
+
+    <main>
+        <div id="message-container"></div>
+        
+        <section id="adicionar-tarefa" class="p-4">
+            <h2>Detalhes da Tarefa</h2>
+            <form id="formulario-tarefa">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label for="titulo-tarefa">Título da Tarefa:</label>
+                        <input type="text" id="titulo-tarefa" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="armador-tarefa">Armador (Cliente):</label>
+                        <select id="armador-tarefa" required>
+                            <option value="" disabled selected>Carregando...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="embarcacao-tarefa">Embarcação (Navio):</label>
+                        <select id="embarcacao-tarefa" required disabled>
+                            <option value="" disabled selected>Selecione um armador primeiro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="solicitante-tarefa">Solicitante (Contato):</label>
+                        <select id="solicitante-tarefa" required disabled>
+                             <option value="" disabled selected>Selecione um armador primeiro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="porto-tarefa">Porto:</label>
+                        <select id="porto-tarefa" required>
+                            <option value="" disabled selected>Carregando...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tipo-tarefa">Tipo da Tarefa:</label>
+                        <select id="tipo-tarefa" required>
+                            <option value="" disabled selected>Carregando...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="data-inicio-tarefa">Data de Início:</label>
+                        <input type="date" id="data-inicio-tarefa" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="protocolo-tarefa">Protocolo:</label>
+                        <input type="text" id="protocolo-tarefa">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status-tarefa">Status:</label>
+                        <select id="status-tarefa" required>
+                            <option value="Não Iniciado" selected>Não Iniciado</option>
+                            <option value="Andamento">Andamento</option>
+                            <option value="Exigência">Exigência</option>
+                            <option value="Finalizado">Finalizado</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="data-fim-container" style="display: none;">
+                        <label for="data-fim-tarefa">Data do Fim:</label>
+                        <input type="date" id="data-fim-tarefa">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="prioridade-tarefa">Prioridade:</label>
+                        <select id="prioridade-tarefa">
+                            <option value="Normal" selected>Normal</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Baixa">Baixa</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deadline-tarefa">Deadline:</label>
+                        <input type="date" id="deadline-tarefa">
+                    </div>
+
+                    <div class="form-group md:col-span-2">
+                        <label for="observacoes-tarefa">Observações:</label>
+                        <textarea id="observacoes-tarefa" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="print-solicitacao">Anexar Evidência (Print, PDF, etc.):</label>
+                         <input type="file" id="print-solicitacao" accept="image/*,.pdf">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="oficio-tarefa">Anexar Ofício (Opcional):</label>
+                        <input type="file" id="oficio-tarefa" accept="image/*,.pdf">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="taxa-paga-tarefa">Haverá pagamento de taxa?</label>
+                        <select id="taxa-paga-tarefa">
+                            <option value="false" selected>Não</option>
+                            <option value="true">Sim</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-2 text-center">
+                        <button type="submit" class="button">Adicionar Tarefa</button>
+                    </div>
+                </div>
+            </form>
+        </section>
+        
+        <div class="nav-buttons">
+            <a href="index.html" class="button">Voltar para a Página Inicial</a>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script>
+        const formulario = document.getElementById('formulario-tarefa');
+        const inputPrint = document.getElementById('print-solicitacao');
+        const inputOficio = document.getElementById('oficio-tarefa');
+        const statusTarefaSelect = document.getElementById('status-tarefa');
+        const dataFimContainer = document.getElementById('data-fim-container');
+        const armadorSelect = document.getElementById('armador-tarefa');
+        const embarcacaoSelect = document.getElementById('embarcacao-tarefa');
+        const solicitanteSelect = document.getElementById('solicitante-tarefa');
+
+        async function popularDropdown(selectElement, tabela, campoNome = 'nome') {
+            const { data, error } = await supabase_client.from(tabela).select(`id, ${campoNome}`).order(campoNome);
+            if (error) {
+                console.error(`Erro ao carregar ${tabela}:`, error);
+                selectElement.innerHTML = `<option value="">Erro</option>`;
+                return;
+            }
+            selectElement.innerHTML = `<option value="" disabled selected>Selecione</option>`;
+            data.forEach(item => {
+                const option = new Option(item[campoNome], item.id);
+                selectElement.add(option);
+            });
+        }
+        
+        window.onload = () => {
+            popularDropdown(armadorSelect, 'armadores');
+            popularDropdown(document.getElementById('porto-tarefa'), 'portos');
+            popularDropdown(document.getElementById('tipo-tarefa'), 'tipos_tarefa');
+        };
+
+        armadorSelect.addEventListener('change', async () => {
+            const armadorId = armadorSelect.value;
+            embarcacaoSelect.innerHTML = '<option value="" disabled selected>Carregando...</option>';
+            solicitanteSelect.innerHTML = '<option value="" disabled selected>Carregando...</option>';
+            embarcacaoSelect.disabled = true;
+            solicitanteSelect.disabled = true;
+            if (!armadorId) return;
+
+            const { data: embarcacoes } = await supabase_client.from('embarcacoes').select('id, nome').eq('armador_id', armadorId).order('nome');
+            embarcacaoSelect.innerHTML = '<option value="" disabled selected>Selecione</option>';
+            embarcacoes.forEach(item => embarcacaoSelect.add(new Option(item.nome, item.id)));
+            embarcacaoSelect.disabled = false;
+
+            const { data: solicitantes } = await supabase_client.from('solicitantes').select('id, nome').eq('armador_id', armadorId).order('nome');
+            solicitanteSelect.innerHTML = '<option value="" disabled selected>Selecione</option>';
+            solicitantes.forEach(item => solicitanteSelect.add(new Option(item.nome, item.id)));
+            solicitanteSelect.disabled = false;
+        });
+
+        statusTarefaSelect.addEventListener('change', () => {
+            dataFimContainer.style.display = (statusTarefaSelect.value === 'Finalizado') ? 'flex' : 'none';
+        });
+
+        async function uploadArquivo(arquivo, pasta) {
+            if (!arquivo) return null;
+            const filePath = `${pasta}/${Date.now()}_${arquivo.name}`;
+            const { error: uploadError } = await supabase_client.storage.from('storage').upload(filePath, arquivo);
+            if (uploadError) throw new Error(`Erro no upload (${pasta}): ${uploadError.message}`);
+            const { data: urlData } = supabase_client.storage.from('storage').getPublicUrl(filePath);
+            return urlData.publicUrl;
+        }
+
+        formulario.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                const { data: { user } } = await supabase_client.auth.getUser();
+                if (!user) throw new Error("Usuário não autenticado.");
+
+                const [urlEvidencia, urlOficio] = await Promise.all([
+                    uploadArquivo(inputPrint.files[0], 'prints'),
+                    uploadArquivo(inputOficio.files[0], 'oficios')
+                ]);
+            
+                const novaTarefa = {
+                    titulo: document.getElementById('titulo-tarefa').value,
+                    dataInicio: document.getElementById('data-inicio-tarefa').value || null,
+                    protocolo: document.getElementById('protocolo-tarefa').value || null,
+                    status: document.getElementById('status-tarefa').value,
+                    dataFim: document.getElementById('data-fim-tarefa').value || null,
+                    observacoes: document.getElementById('observacoes-tarefa').value || null,
+                    codigo: `TASK-${Date.now()}`,
+                    urlEvidencia,
+                    armador_id: document.getElementById('armador-tarefa').value || null,
+                    embarcacao_id: document.getElementById('embarcacao-tarefa').value || null,
+                    solicitante_id: document.getElementById('solicitante-tarefa').value || null,
+                    porto_id: document.getElementById('porto-tarefa').value || null,
+                    tipo_id: document.getElementById('tipo-tarefa').value || null,
+                    user_id: user.id,
+                    prioridade: document.getElementById('prioridade-tarefa').value,
+                    data_deadline: document.getElementById('deadline-tarefa').value || null,
+                    taxa_paga: document.getElementById('taxa-paga-tarefa').value === 'true',
+                    url_oficio: urlOficio
+                };
+
+                const { error } = await supabase_client.from('tarefas').insert([novaTarefa]);
+                if (error) throw error;
+                
+                showMessage("Tarefa criada com sucesso!", true);
+                formulario.reset();
+                embarcacaoSelect.innerHTML = '<option value="" disabled selected>Selecione um armador</option>';
+                solicitanteSelect.innerHTML = '<option value="" disabled selected>Selecione um armador</option>';
+            } catch (error) {
+                showMessage(`Erro ao criar tarefa: ${error.message}`, false);
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>

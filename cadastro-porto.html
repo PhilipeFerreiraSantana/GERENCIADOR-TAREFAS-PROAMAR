@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Portos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Cadastro de Portos</h1>
+    </header>
+
+    <main>
+        <div id="message-container"></div>
+
+        <section id="formulario-section" class="p-4">
+            <form id="form-porto">
+                <input type="hidden" id="porto-id">
+                <div class="form-group">
+                    <label for="nome-porto">Nome do Porto:</label>
+                    <input type="text" id="nome-porto" placeholder="Ex: Santos" required>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="button">Salvar</button>
+                    <button type="button" id="cancelar-edicao" class="button" style="display:none;">Cancelar Edição</button>
+                </div>
+            </form>
+        </section>
+
+        <section id="lista-section" class="p-4">
+            <h2>Portos Cadastrados</h2>
+            <div id="loading-spinner">Carregando...</div>
+            <div id="lista-portos-container"></div>
+        </section>
+
+        <div class="nav-buttons">
+            <a href="cadastros.html" class="button">Voltar para o Menu de Cadastros</a>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script>
+        const formPorto = document.getElementById('form-porto');
+        const inputId = document.getElementById('porto-id');
+        const inputNome = document.getElementById('nome-porto');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const listaContainer = document.getElementById('lista-portos-container');
+        const btnCancelarEdicao = document.getElementById('cancelar-edicao');
+        
+        window.onload = () => {
+            listarPortos();
+        };
+
+        async function listarPortos() {
+            loadingSpinner.style.display = 'block';
+            listaContainer.innerHTML = '';
+
+            const { data, error } = await supabase_client
+                .from('portos')
+                .select('*')
+                .order('nome', { ascending: true });
+
+            if (error) {
+                console.error("Erro ao buscar portos:", error);
+                showMessage("Erro ao carregar a lista.", false);
+                loadingSpinner.style.display = 'none';
+                return;
+            }
+
+            if (data.length === 0) {
+                listaContainer.innerHTML = '<p>Nenhum porto cadastrado.</p>';
+            } else {
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(porto => `
+                            <tr>
+                                <td>${porto.nome}</td>
+                                <td>
+                                    <button class="action-button alterar-button" onclick="iniciarEdicao(${porto.id}, '${porto.nome}')">Editar</button>
+                                    <button class="action-button excluir-button" onclick="excluirPorto(${porto.id})">Excluir</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                listaContainer.appendChild(table);
+            }
+            loadingSpinner.style.display = 'none';
+        }
+
+        formPorto.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = inputNome.value.trim();
+            const id = inputId.value;
+
+            if (id) {
+                const { error } = await supabase_client.from('portos').update({ nome: nome }).eq('id', id);
+                if (error) showMessage("Erro ao atualizar o porto.", false);
+                else showMessage("Porto atualizado com sucesso!", true);
+
+            } else {
+                const { error } = await supabase_client.from('portos').insert([{ nome: nome }]);
+                if (error) {
+                    console.error("Erro ao salvar:", error);
+                    showMessage("Erro ao salvar o porto.", false);
+                } else {
+                    showMessage("Porto salvo com sucesso!", true);
+                }
+            }
+            resetarFormulario();
+            listarPortos();
+        });
+
+        function iniciarEdicao(id, nome) {
+            inputId.value = id;
+            inputNome.value = nome;
+            btnCancelarEdicao.style.display = 'inline-block';
+            window.scrollTo(0, 0);
+        }
+        
+        async function excluirPorto(id) {
+            const { data, error: checkError } = await supabase_client
+                .from('tarefas')
+                .select('id', { count: 'exact' })
+                .eq('porto_id', id);
+
+            if (checkError) {
+                showMessage("Erro ao verificar o uso do porto.", false);
+                return;
+            }
+
+            if (data && data.length > 0) {
+                showMessage(`Este porto não pode ser excluído pois está em uso por ${data.length} tarefa(s).`, false);
+                return;
+            }
+
+            if (confirm('Este porto não está em uso. Tem certeza que deseja excluí-lo?')) {
+                const { error } = await supabase_client.from('portos').delete().eq('id', id);
+                if (error) showMessage("Erro ao excluir o porto.", false);
+                else {
+                    showMessage("Porto excluído com sucesso!", true);
+                    listarPortos();
+                }
+            }
+        }
+        
+        function resetarFormulario() {
+            formPorto.reset();
+            inputId.value = '';
+            btnCancelarEdicao.style.display = 'none';
+        }
+
+        btnCancelarEdicao.addEventListener('click', resetarFormulario);
+    </script>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script> </body>
+</html>

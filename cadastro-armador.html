@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Armadores</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .logo-lista {
+            width: 80px;
+            height: auto;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+        #lista-armadores-container table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        #lista-armadores-container th,
+        #lista-armadores-container td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <header><h1>Cadastro de Armadores (Clientes)</h1></header>
+    <main>
+        <div id="message-container"></div>
+        <section id="formulario-section" class="p-4">
+            <form id="form-armador">
+                <input type="hidden" id="armador-id">
+                <div class="form-group">
+                    <label for="nome-armador">Nome do Armador:</label>
+                    <input type="text" id="nome-armador" placeholder="Digite o nome do cliente" required>
+                </div>
+                <div class="form-group">
+                    <label for="logo-armador">Logo do Armador:</label>
+                    <input type="file" id="logo-armador" accept="image/png, image/jpeg, image/svg+xml">
+                    <small>Ao editar, se um novo logo for enviado, ele substituirá o atual.</small>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="button">Salvar</button>
+                    <button type="button" id="cancelar-edicao" class="button" style="display:none;">Cancelar Edição</button>
+                </div>
+            </form>
+        </section>
+        <section id="lista-section" class="p-4">
+            <h2>Armadores Cadastrados</h2>
+            <div id="loading-spinner">Carregando...</div>
+            <div id="lista-armadores-container"></div>
+        </section>
+        <div class="nav-buttons">
+            <a href="cadastros.html" class="button">Voltar</a>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+    <script src="config.js"></script>
+    <script src="auth-guard.js"></script>
+    <script>
+        const formArmador = document.getElementById('form-armador');
+        const inputId = document.getElementById('armador-id');
+        const inputNome = document.getElementById('nome-armador');
+        const inputLogo = document.getElementById('logo-armador');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const listaContainer = document.getElementById('lista-armadores-container');
+        const btnCancelarEdicao = document.getElementById('cancelar-edicao');
+
+        window.onload = () => {
+            listarArmadores();
+        };
+
+        // FUNÇÃO ATUALIZADA PARA EXIBIR O LOGO CORRETAMENTE
+        async function listarArmadores() {
+            loadingSpinner.style.display = 'block';
+            listaContainer.innerHTML = '';
+            const { data, error } = await supabase_client.from('armadores').select('id, nome, logo_url').order('nome', { ascending: true });
+
+            if (error) { showMessage("Erro ao carregar a lista.", false); loadingSpinner.style.display = 'none'; return; }
+
+            if (data.length === 0) {
+                listaContainer.innerHTML = '<p>Nenhum armador cadastrado.</p>';
+            } else {
+                const table = document.createElement('table');
+                table.innerHTML = `
+                    <thead><tr><th>Logo</th><th>Nome</th><th>Ações</th></tr></thead>
+                    <tbody>
+                        ${data.map(armador => `
+                            <tr>
+                                <td>
+                                    ${armador.logo_url ? `<img src="${armador.logo_url}" alt="Logo" class="logo-lista">` : 'Sem logo'}
+                                </td>
+                                <td>${armador.nome}</td>
+                                <td>
+                                    <button class="action-button alterar-button" onclick="iniciarEdicao(${armador.id}, '${armador.nome.replace(/'/g, "\\'")}')">Editar</button>
+                                    <button class="action-button excluir-button" onclick="excluirArmador(${armador.id})">Excluir</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                listaContainer.appendChild(table);
+            }
+            loadingSpinner.style.display = 'none';
+        }
+
+        formArmador.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = inputNome.value.trim();
+            const id = inputId.value;
+            const logoFile = inputLogo.files[0];
+            let logoUrl = null;
+
+            try {
+                if (logoFile) {
+                    const filePath = `public/${Date.now()}_${logoFile.name}`;
+                    const { error: uploadError } = await supabase_client.storage.from('logos').upload(filePath, logoFile, { upsert: true });
+                    if (uploadError) throw uploadError;
+                    
+                    const { data: urlData } = supabase_client.storage.from('logos').getPublicUrl(filePath);
+                    logoUrl = urlData.publicUrl;
+                }
+
+                const dadosParaSalvar = { nome };
+                if (logoUrl) {
+                    dadosParaSalvar.logo_url = logoUrl;
+                }
+
+                if (id) {
+                    const { error } = await supabase_client.from('armadores').update(dadosParaSalvar).eq('id', id);
+                    if (error) throw error;
+                    showMessage("Armador atualizado com sucesso!", true);
+                } else {
+                    const { error } = await supabase_client.from('armadores').insert([dadosParaSalvar]);
+                    if (error) throw error;
+                    showMessage("Armador salvo com sucesso!", true);
+                }
+                
+                resetarFormulario();
+                listarArmadores();
+
+            } catch (error) {
+                showMessage(`Erro ao salvar armador: ${error.message}`, false);
+                console.error(error);
+            }
+        });
+        
+        function iniciarEdicao(id, nome) {
+            inputId.value = id;
+            inputNome.value = nome;
+            btnCancelarEdicao.style.display = 'inline-block';
+            window.scrollTo(0, 0);
+        }
+
+        async function excluirArmador(id) {
+            const { count: tarefasCount } = await supabase_client.from('tarefas').select('*', { count: 'exact', head: true }).eq('armador_id', id);
+            const { count: embarcacoesCount } = await supabase_client.from('embarcacoes').select('*', { count: 'exact', head: true }).eq('armador_id', id);
+            
+            if (tarefasCount > 0 || embarcacoesCount > 0) {
+                showMessage('Este armador não pode ser excluído pois está em uso.', false);
+                return;
+            }
+            
+            if (confirm('Tem certeza que deseja excluir este armador? Esta ação não pode ser desfeita.')) {
+                const { error } = await supabase_client.from('armadores').delete().eq('id', id);
+                if (error) {
+                    showMessage(`Erro ao excluir: ${error.message}`, false);
+                } else {
+                    showMessage("Armador excluído com sucesso!", true);
+                    listarArmadores();
+                }
+            }
+        }
+        
+        function resetarFormulario() {
+            formArmador.reset();
+            inputId.value = '';
+            btnCancelarEdicao.style.display = 'none';
+        }
+
+        btnCancelarEdicao.addEventListener('click', resetarFormulario);
+    </script>
+</body>
+</html>
