@@ -123,177 +123,6 @@ textarea {
     font-size: 1rem;
 }
 
-/* Estilos para a tabela de tarefas */
-#tarefas-container table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-    background-color: var(--card-background);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-#tarefas-container th,
-#tarefas-container td {
-    border: 1px solid var(--border-color);
-    padding: 12px 10px;
-    text-align: left;
-    font-size: 14px;
-}
-
-#tarefas-container thead th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-}
-
-#tarefas-container tbody tr:nth-child(even) {
-    background-color: #f9f9f9;
-}
-
-.col-cod {
-    width: 80px;
-    text-align: center;
-    font-weight: bold;
-}
-
-.col-detalhes {
-    width: 40px;
-    text-align: center;
-}
-
-.detalhe-link {
-    display: inline-block;
-    color: #007bff;
-    transition: transform 0.2s;
-}
-
-.detalhe-link:hover {
-    transform: scale(1.2);
-    color: #0056b3;
-}
-
-/* Estilos para os botões de ação */
-.action-button {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
-    font-size: 0.9rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.alterar-button {
-    background-color: #007bff;
-    color: white;
-}
-
-.alterar-button:hover {
-    background-color: #0056b3;
-}
-
-.excluir-button {
-    background-color: #dc3545;
-    color: white;
-}
-
-.excluir-button:hover {
-    background-color: #c82333;
-}
-
-/* Estilos para o modal de confirmação */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 400px;
-    text-align: center;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.modal-content p {
-    font-size: 1.1rem;
-    margin-bottom: 1.5rem;
-}
-
-.modal-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
-
-/* Estilos para a página de detalhes */
-#detalhes-tarefa-container {
-    padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.card-detalhes {
-    background-color: var(--card-background);
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    margin-top: 2rem;
-}
-
-.card-detalhes p {
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
-}
-
-/* BLOCO DE MENSAGENS CORRIGIDO (SEM DUPLICAÇÃO) */
-#message-container {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    width: 90%;
-    max-width: 600px;
-}
-
-.message-success,
-.message-error {
-    text-align: center;
-    padding: 1rem;
-    border-radius: 8px;
-    font-weight: bold;
-    margin: 0 auto; /* Removido margin-top para não dar espaço extra */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    animation: fadeIn 0.5s ease-in-out;
-    display: none; /* Escondido por padrão, controlado via JS */
-}
-
-.message-success {
-    background-color: #28a745; /* Verde para sucesso */
-    color: white;
-}
-
-.message-error {
-    background-color: #dc3545; /* Vermelho para erro */
-    color: white;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
 /* =================================== */
 /* ESTILOS PARA A PÁGINA DE LOGIN      */
 /* =================================== */
@@ -326,32 +155,30 @@ body.login-page {
     margin-bottom: 1rem;
 }
 
+/* Remove o header padrão da página de login */
 .login-page header {
     background-color: transparent;
     padding: 0;
     box-shadow: none;
     border-bottom: none;
+    color: var(--text-color);
 }
 .login-page header h1 {
     font-size: 1.5rem;
-    color: #333;
+    margin-bottom: 0.5rem;
 }
 
-.login-container input[type="email"],
-.login-container input[type="password"] {
-    text-align: center;
+.login-subtitle {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    font-weight: normal;
+    margin-bottom: 1.5rem;
 }
 
 .login-container label {
     text-align: left;
     display: block;
     margin-bottom: 5px;
-}
-
-/* REGRA ADICIONADA PARA CENTRALIZAR O BOTÃO 'ENTRAR' */
-.login-container .text-center {
-    display: flex;
-    justify-content: center;
 }
 
 .developer-credit {
@@ -365,4 +192,83 @@ body.login-page {
 
 .developer-credit:hover {
     color: #333;
+}
+
+/* ================================================= */
+/* Estilos para Listas de Itens com Ações (Cadastros) */
+/* ================================================= */
+
+.lista-container {
+    max-width: 600px;
+    margin: 1rem auto;
+    padding: 0;
+}
+
+.item-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.item-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    background-color: #fff;
+}
+
+.item-list li:last-child {
+    border-bottom: none;
+}
+
+.item-list li span {
+    font-weight: 500;
+    color: #333;
+    margin-right: 1rem;
+}
+
+.item-list .item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.item-list .action-button {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 1px solid transparent;
+    flex-shrink: 0;
+}
+
+.alterar-button {
+    background-color: #007bff;
+    color: white;
+}
+.alterar-button:hover {
+    background-color: #0056b3;
+}
+
+.excluir-button {
+    background-color: #dc3545;
+    color: white;
+}
+.excluir-button:hover {
+    background-color: #c82333;
+}
+
+/* =================================== */
+/* Classes Utilitárias                 */
+/* =================================== */
+
+/* Usado para centralizar elementos como botões dentro de um container */
+.text-center {
+    display: flex;
+    justify-content: center;
+    width: 100%;
 }
