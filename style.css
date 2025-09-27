@@ -8,13 +8,7 @@
     --text-color: #333;
     --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
     font-family: var(--font-family);
     background-color: var(--background-color);
@@ -24,20 +18,15 @@ body {
     flex-direction: column;
     min-height: 100vh;
 }
-
 header {
     background-color: var(--primary-color);
     color: white;
     padding: 1rem;
     text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-
-header h1 {
-    margin: 0;
-}
-
-/* Estilos da página inicial */
+header h1 { margin: 0; }
+main { padding: 1rem; }
 .home-main {
     flex-grow: 1;
     display: flex;
@@ -46,33 +35,17 @@ header h1 {
     text-align: center;
     padding: 2rem 1rem;
 }
-
 .home-section {
     background-color: var(--card-background);
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     max-width: 500px;
     width: 100%;
 }
-
-.logo {
-    max-height: 50px;
-    width: auto;
-    margin-bottom: 1rem;
-}
-
-.home-section p {
-    margin-bottom: 1rem;
-}
-
-.home-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
+.logo { max-height: 50px; width: auto; margin-bottom: 1rem; }
+.home-section p { margin-bottom: 1rem; }
+.home-buttons { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
 .button {
     display: block;
     background-color: var(--primary-color);
@@ -82,193 +55,126 @@ header h1 {
     border-radius: 4px;
     font-size: 1.1rem;
     font-weight: bold;
-    transition: background-color 0.3s, transform 0.2s;
+    transition: background-color .3s, transform .2s;
     border: none;
     cursor: pointer;
 }
-
-.button:hover {
-    background-color: var(--primary-color-dark);
-    transform: translateY(-2px);
-}
-
-.nav-buttons {
-    margin-top: 2rem;
-    text-align: center;
-}
-
-/* Estilos gerais de formulários */
-.form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1rem;
-}
-
-label {
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-    color: var(--secondary-color);
-}
-
-input[type="text"],
-input[type="date"],
-input[type="email"],
-input[type="password"],
-select,
-textarea {
+.button:hover { background-color: var(--primary-color-dark); transform: translateY(-2px); }
+.nav-buttons { margin-top: 2rem; text-align: center; }
+label { margin-bottom: .5rem; font-weight: bold; color: var(--secondary-color); }
+input[type="text"], input[type="date"], input[type="email"], input[type="password"], select, textarea {
     width: 100%;
-    padding: 0.75rem;
+    padding: .75rem;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     font-size: 1rem;
 }
 
 /* =================================== */
-/* ESTILOS PARA A PÁGINA DE LOGIN      */
+/* PÁGINA DE LOGIN                     */
 /* =================================== */
-
 body.login-page {
-    background-image: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.85)), url('background.jpg');
+    background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)), url('background.jpg');
     background-size: cover;
-    background-position: center center;
+    background-position: center;
     background-attachment: fixed;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    margin: 0;
 }
-
 .login-container {
-    background-color: rgba(255, 255, 255, 0.98);
+    background-color: rgba(255,255,255,0.98);
     padding: 2rem 3rem;
     border-radius: 15px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
     max-width: 450px;
     width: 100%;
     text-align: center;
 }
+.login-logo { max-width: 250px; height: auto; margin-bottom: 1rem; }
+.login-page header { background-color: transparent; padding: 0; box-shadow: none; border: none; color: var(--text-color); }
+.login-page header h1 { font-size: 1.5rem; margin-bottom: .5rem; }
+.login-subtitle { font-size: 1.2rem; color: var(--secondary-color); font-weight: normal; margin-bottom: 1.5rem; }
+.login-container label { text-align: left; display: block; margin-bottom: 5px; }
+.developer-credit { display: block; margin-top: 2rem; font-size: .8rem; color: #888; text-decoration: none; }
 
-.login-logo {
-    max-width: 250px;
-    height: auto;
-    margin-bottom: 1rem;
-}
-
-/* Remove o header padrão da página de login */
-.login-page header {
-    background-color: transparent;
-    padding: 0;
-    box-shadow: none;
-    border-bottom: none;
-    color: var(--text-color);
-}
-.login-page header h1 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.login-subtitle {
-    font-size: 1.2rem;
-    color: var(--secondary-color);
-    font-weight: normal;
-    margin-bottom: 1.5rem;
-}
-
-.login-container label {
-    text-align: left;
-    display: block;
-    margin-bottom: 5px;
-}
-
-.developer-credit {
-    display: block;
-    margin-top: 2rem;
-    font-size: 0.8rem;
-    color: #888;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.developer-credit:hover {
-    color: #333;
-}
-
-/* ================================================= */
-/* Estilos para Listas de Itens com Ações (Cadastros) */
-/* ================================================= */
-
-.lista-container {
-    max-width: 600px;
-    margin: 1rem auto;
-    padding: 0;
-}
-
-.item-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    border: 1px solid #ccc;
+/* ============================================== */
+/* ESTILOS PARA 'SELECIONAR ARMADOR' E CADASTROS  */
+/* ============================================== */
+.selecao-container {
+    max-width: 500px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: var(--card-background);
     border-radius: 8px;
-    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+.selecao-section { text-align: center; }
+.selecao-section h2 { margin-bottom: 1rem; }
+.selecao-section form { display: flex; flex-direction: column; gap: 1rem; }
+.selecao-container hr { border: none; border-top: 1px solid var(--border-color); margin: 2rem 0; }
+
+/* NOVAS REGRAS PARA CENTRALIZAR OS CADASTROS */
+#selecao-armador-section, #lista-e-cadastro-section {
+    text-align: center;
 }
 
-.item-list li {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 15px;
-    border-bottom: 1px solid #eee;
-    background-color: #fff;
+/* ============================================== */
+/* TABELA DE TAREFAS RESPONSIVA                   */
+/* ============================================== */
+.table-responsive-container { overflow-x: auto; width: 100%; padding: 2px; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
 }
+th, td { padding: 12px 15px; border: 1px solid var(--border-color); text-align: left; white-space: nowrap; }
+th { background-color: #f8f9fa; font-weight: bold; }
+tbody tr:nth-child(even) { background-color: #f2f2f2; }
+.actions-cell { display: flex; align-items: center; gap: 8px; }
+.action-button { padding: .5rem 1rem; border: none; border-radius: 4px; font-size: .9rem; font-weight: bold; cursor: pointer; text-decoration: none; text-align: center; }
+.alterar-button { background-color: #007bff; color: white; }
+.excluir-button { background-color: #dc3545; color: white; }
+.detalhe-link { color: #007bff; font-weight: bold; }
 
-.item-list li:last-child {
-    border-bottom: none;
-}
+/* ============================================== */
+/* LISTAS EM CADASTROS (EMBARCAÇÃO/SOLICITANTE)   */
+/* ============================================== */
+.lista-container { max-width: 600px; margin: 1rem auto; padding: 0; }
+.item-list { list-style-type: none; padding: 0; margin: 0; border: 1px solid #ccc; border-radius: 8px; overflow: hidden; }
+.item-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; background-color: #fff; text-align: left; }
+.item-list li:last-child { border-bottom: none; }
+.item-list li span { font-weight: 500; color: #333; margin-right: 1rem; }
+.item-list .item-actions { display: flex; gap: 8px; }
+.item-list .action-button { padding: 5px 10px; font-size: .85rem; cursor: pointer; border-radius: 5px; border: 1px solid transparent; flex-shrink: 0; }
 
-.item-list li span {
-    font-weight: 500;
-    color: #333;
-    margin-right: 1rem;
+/* ============================================== */
+/* MODAL DE CONFIRMAÇÃO                           */
+/* ============================================== */
+.modal {
+    display: none; 
+    position: fixed;
+    z-index: 1001;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
 }
-
-.item-list .item-actions {
-    display: flex;
-    gap: 8px;
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
-
-.item-list .action-button {
-    padding: 5px 10px;
-    font-size: 0.85rem;
-    cursor: pointer;
-    border-radius: 5px;
-    border: 1px solid transparent;
-    flex-shrink: 0;
-}
-
-.alterar-button {
-    background-color: #007bff;
-    color: white;
-}
-.alterar-button:hover {
-    background-color: #0056b3;
-}
-
-.excluir-button {
-    background-color: #dc3545;
-    color: white;
-}
-.excluir-button:hover {
-    background-color: #c82333;
-}
+.modal-content p { font-size: 1.1rem; margin-bottom: 1.5rem; }
+.modal-buttons { display: flex; justify-content: center; gap: 1rem; }
 
 /* =================================== */
 /* Classes Utilitárias                 */
 /* =================================== */
-
-/* Usado para centralizar elementos como botões dentro de um container */
-.text-center {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
+.text-center { display: flex; justify-content: center; width: 100%; }

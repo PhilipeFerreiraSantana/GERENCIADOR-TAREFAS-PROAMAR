@@ -9,25 +9,28 @@
 <body>
     <header><h1>Gerenciar Tarefas</h1></header>
     <main>
-        <section class="p-4">
-            <h2 class="text-center">Ver Tarefas por Armador</h2>
-            <form id="form-selecao" class="form-group" style="max-width: 400px; margin: 1rem auto;">
-                <label for="armador-select">Selecione um Armador (Cliente):</label>
-                <select id="armador-select" required>
-                    <option value="" disabled selected>Carregando...</option>
-                </select>
-                <div class="text-center" style="margin-top: 1rem;">
+        <div class="selecao-container">
+
+            <section class="selecao-section">
+                <h2>Ver Tarefas por Armador</h2>
+                <form id="form-selecao">
+                    <label for="armador-select">Selecione um Armador (Cliente):</label>
+                    <select id="armador-select" required>
+                        <option value="" disabled selected>Carregando...</option>
+                    </select>
                     <button type="submit" class="button">Ver Tarefas do Armador</button>
-                </div>
-            </form>
+                </form>
+            </section>
 
-            <hr style="margin: 2rem auto; max-width: 400px;">
+            <hr>
 
-            <div class="text-center">
-                <h2 class="text-center">Ver Minhas Tarefas</h2>
+            <section class="selecao-section">
+                <h2>Ver Minhas Tarefas</h2>
                 <a href="lista-tarefas.html?filtro=minhas_ativas" class="button alterar-button">Ver Todas as Minhas Tarefas Ativas</a>
-            </div>
-        </section>
+            </section>
+
+        </div>
+
         <div class="nav-buttons">
             <a href="index.html" class="button">Voltar para a Página Inicial</a>
         </div>
@@ -35,7 +38,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
     <script src="config.js"></script>
     <script src="auth-guard.js"></script>
-    <script src="user-display.js"></script> <script></script>
+    <script src="user-display.js"></script>
     <script>
         const armadorSelect = document.getElementById('armador-select');
         const formSelecao = document.getElementById('form-selecao');
@@ -46,7 +49,7 @@
             
             if (error) {
                 console.error("Erro ao carregar armadores:", error);
-                armadorSelect.innerHTML = '<option value="">Erro ao carregar a lista</option>';
+                armadorSelect.innerHTML = '<option value="">Erro ao carregar</option>';
                 return;
             }
             

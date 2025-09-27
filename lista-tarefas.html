@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Tarefas</title>
-    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="style.css?v=1.1"> 
 </head>
 <body>
     <header>
@@ -15,19 +15,27 @@
     </header>
     <main>
         <div id="message-container"></div>
-        <section id="lista-tarefas-section"><div id="loading-spinner">Carregando...</div><div id="tarefas-container"></div></section>
-        <div class="nav-buttons"><a id="botao-voltar" href="index.html" class="button">Voltar</a></div>
+        <section id="lista-tarefas-section">
+            <div id="loading-spinner">Carregando...</div>
+            <div id="tarefas-container"></div>
+        </section>
+        <div class="nav-buttons">
+            <a id="botao-voltar" href="index.html" class="button">Voltar</a>
+        </div>
     </main>
     <div id="confirm-modal" class="modal">
         <div class="modal-content">
             <p>Tem certeza que quer marcar esta tarefa como excluída?</p>
-            <div class="modal-buttons"><button id="confirm-yes" class="button excluir-button">Sim</button><button id="confirm-no" class="button alterar-button">Não</button></div>
+            <div class="modal-buttons">
+                <button id="confirm-yes" class="button excluir-button">Sim</button>
+                <button id="confirm-no" class="button alterar-button">Não</button>
+            </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
     <script src="config.js"></script>
     <script src="auth-guard.js"></script>
-    <script src="user-display.js"></script> <script></script>
+    <script src="user-display.js"></script>
     <script>
         const loadingSpinner = document.getElementById('loading-spinner');
         const tarefasContainer = document.getElementById('tarefas-container');
@@ -104,10 +112,29 @@
 
         function renderizarTarefas(tarefas, filtro) {
             loadingSpinner.style.display = 'none';
-            if (!tarefas || tarefas.length === 0) { tarefasContainer.innerHTML = '<p class="text-center">Nenhuma tarefa encontrada.</p>'; return; }
+            tarefasContainer.innerHTML = ''; // Limpa o container antes de adicionar a tabela
+
+            if (!tarefas || tarefas.length === 0) {
+                tarefasContainer.innerHTML = '<p style="text-align: center;">Nenhuma tarefa encontrada.</p>';
+                return;
+            }
+
+            // CRIA O CONTAINER PARA A TABELA RESPONSIVA
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'table-responsive-container';
+
             const table = document.createElement('table');
             table.innerHTML = `
-                <thead><tr><th>Cód.</th><th>Título</th><th>Responsável</th><th>Porto</th><th>Status</th><th>Ações</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Cód.</th>
+                        <th>Título</th>
+                        <th>Responsável</th>
+                        <th>Porto</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
                 <tbody>
                     ${tarefas.map(t => `
                         <tr>
@@ -124,22 +151,39 @@
                     `).join('')}
                 </tbody>
             `;
-            tarefasContainer.appendChild(table);
+            
+            // Adiciona a tabela ao container, e o container à página
+            tableContainer.appendChild(table);
+            tarefasContainer.appendChild(tableContainer);
         }
+
         tarefasContainer.addEventListener('click', (e) => {
             const targetButton = e.target.closest('.excluir-button');
-            if (targetButton) { tarefaIdParaExcluir = targetButton.dataset.id; if (confirmModal) confirmModal.style.display = 'block'; }
+            if (targetButton) { 
+                tarefaIdParaExcluir = targetButton.dataset.id; 
+                if (confirmModal) confirmModal.style.display = 'block'; 
+            }
         });
+
         confirmYes.addEventListener('click', async () => {
             if (tarefaIdParaExcluir) {
                 const { error } = await supabase_client.from('tarefas').update({ esta_excluida: true }).eq('id', tarefaIdParaExcluir);
-                if (error) { showMessage(`Erro ao excluir: ${error.message}`, false); }
-                else { showMessage("Tarefa excluída.", true); carregarTarefasFiltradas(); }
+                if (error) { 
+                    showMessage(`Erro ao excluir: ${error.message}`, false); 
+                } else { 
+                    showMessage("Tarefa marcada como excluída.", true); 
+                    carregarTarefasFiltradas(); 
+                }
             }
             if (confirmModal) confirmModal.style.display = 'none';
             tarefaIdParaExcluir = null;
         });
-        confirmNo.addEventListener('click', () => { if (confirmModal) confirmModal.style.display = 'none'; tarefaIdParaExcluir = null; });
+
+        confirmNo.addEventListener('click', () => { 
+            if (confirmModal) confirmModal.style.display = 'none'; 
+            tarefaIdParaExcluir = null; 
+        });
+        
         document.addEventListener('DOMContentLoaded', carregarTarefasFiltradas);
     </script>
 </body>
