@@ -42,7 +42,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
     <script src="config.js"></script>
     <script src="auth-guard.js"></script>
-    <script src="user-display.js"></script> <script></script>
+    <script src="user-display.js"></script>
     <script>
         const formulario = document.getElementById('formulario-tarefa');
         const loadingSpinner = document.getElementById('loading-spinner');
@@ -139,7 +139,8 @@
                 ]);
                 
                 const tarefaAtualizada = {
-                    titulo: document.getElementById('titulo-tarefa').value,
+                    // Título agora é salvo em maiúsculas
+                    titulo: document.getElementById('titulo-tarefa').value.trim().toUpperCase(),
                     armador_id: document.getElementById('armador-tarefa').value,
                     embarcacao_id: document.getElementById('embarcacao-tarefa').value,
                     solicitante_id: document.getElementById('solicitante-tarefa').value,
@@ -153,20 +154,23 @@
                     url_oficio: urlOficio !== null ? urlOficio : tarefaAtual.url_oficio,
                     urlEvidencia: urlEvidencia !== null ? urlEvidencia : tarefaAtual.urlEvidencia,
                     user_id: responsavelContainer.style.display === 'block' ? responsavelSelect.value : undefined,
-
-                    // ===== CORREÇÃO APLICADA ABAIXO =====
-                    // Adiciona `|| null` para garantir que campos de data vazios enviem null ao banco
                     dataInicio: document.getElementById('data-inicio-tarefa').value || null,
                     dataFim: document.getElementById('data-fim-tarefa').value || null,
                     data_deadline: document.getElementById('deadline-tarefa').value || null
-                    // ===================================
                 };
                 if (tarefaAtualizada.user_id === undefined) delete tarefaAtualizada.user_id;
 
                 const { error } = await supabase_client.from('tarefas').update(tarefaAtualizada).eq('id', tarefaId);
                 if (error) throw error;
                 
-                localStorage.setItem('tarefaAtualizada', 'true');
+                // =================================================================
+                // INÍCIO: CORREÇÃO DA MENSAGEM DE SUCESSO
+                // =================================================================
+                localStorage.setItem('successMessage', 'Tarefa alterada com sucesso!');
+                // ===============================================================
+                // FIM: CORREÇÃO
+                // ===============================================================
+
                 window.location.href = `lista-tarefas.html?filtro=minhas_ativas`;
             } catch (error) { showMessage(`Erro ao atualizar: ${error.message}`, false); }
         });

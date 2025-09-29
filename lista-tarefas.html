@@ -50,7 +50,6 @@
             if (!dataString) return 'N/A';
             const data = new Date(dataString);
             if (isNaN(data.getTime())) return 'N/A';
-            // Ajuste para garantir que a data seja interpretada como UTC
             data.setMinutes(data.getMinutes() + data.getTimezoneOffset());
             return data.toLocaleDateString('pt-BR');
         }
@@ -127,7 +126,6 @@
             tableContainer.className = 'table-responsive-container';
 
             const table = document.createElement('table');
-            // ÚNICA ALTERAÇÃO NESTE ARQUIVO: Reordenação das colunas abaixo
             table.innerHTML = `
                 <thead>
                     <tr>
@@ -147,7 +145,7 @@
                             <td>${t.codigo ? t.codigo.slice(-4) : 'N/A'}</td>
                             <td>${t.portos ? t.portos.nome : 'N/A'}</td>
                             <td>${t.embarcacoes ? t.embarcacoes.nome : 'N/A'}</td>
-                            <td><a href="detalhar-tarefa.html?id=${t.id}" class="detalhe-link">${t.titulo}</a></td>
+                            <td><a href="detalhar-tarefa.html?id=${t.id}" class="detalhe-link">${t.titulo ? t.titulo.toUpperCase() : ''}</a></td>
                             <td>${t.status}</td>
                             <td>${t.profiles ? t.profiles.alias : 'N/A'}</td>
                             <td>${formatarData(t.data_deadline)}</td>
@@ -191,7 +189,20 @@
             tarefaIdParaExcluir = null; 
         });
         
-        document.addEventListener('DOMContentLoaded', carregarTarefasFiltradas);
+        // =================================================================
+        // INÍCIO: CORREÇÃO DA MENSAGEM DE SUCESSO
+        // =================================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const successMessage = localStorage.getItem('successMessage');
+            if (successMessage) {
+                showMessage(successMessage, true);
+                localStorage.removeItem('successMessage'); // Limpa a mensagem para não exibir de novo
+            }
+            carregarTarefasFiltradas();
+        });
+        // ===============================================================
+        // FIM: CORREÇÃO
+        // ===============================================================
     </script>
 </body>
 </html>

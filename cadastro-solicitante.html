@@ -61,46 +61,29 @@
         const solicitantesContainer = document.getElementById('solicitantes-container');
         const formCadastro = document.getElementById('form-cadastro');
         const nomeSolicitanteInput = document.getElementById('nome-solicitante');
-        const messageContainer = document.getElementById('message-container');
-
+        
         async function carregarArmadores() {
             const { data, error } = await supabase_client
                 .from('armadores')
                 .select('id, nome')
                 .order('nome');
-            if (error) {
-                console.error('Erro ao buscar armadores:', error);
-                armadorSelect.innerHTML = '<option>Erro ao carregar</option>';
-                return;
-            }
+            if (error) { console.error('Erro ao buscar armadores:', error); armadorSelect.innerHTML = '<option>Erro</option>'; return; }
             armadorSelect.innerHTML = '<option value="" disabled selected>Selecione um armador</option>';
-            data.forEach(armador => {
-                const option = new Option(armador.nome, armador.id);
-                armadorSelect.add(option);
-            });
+            data.forEach(armador => armadorSelect.add(new Option(armador.nome, armador.id)));
         }
 
         async function carregarSolicitantes(armadorId) {
             solicitantesContainer.innerHTML = '<p>Buscando solicitantes...</p>';
             
-            const { data, error } = await supabase_client
-                .from('solicitantes')
-                .select('id, nome')
-                .eq('armador_id', armadorId)
-                .order('nome');
-
-            if (error) {
-                console.error('Erro ao buscar solicitantes:', error);
-                solicitantesContainer.innerHTML = '<p class="message-error">Erro ao carregar solicitantes.</p>';
-                return;
-            }
+            const { data, error } = await supabase_client.from('solicitantes').select('id, nome').eq('armador_id', armadorId).order('nome');
+            if (error) { console.error('Erro:', error); solicitantesContainer.innerHTML = '<p>Erro ao carregar.</p>'; return; }
 
             solicitantesContainer.innerHTML = '';
             if (data.length === 0) {
                 solicitantesContainer.innerHTML = '<p>Nenhum solicitante cadastrado para este armador.</p>';
             } else {
                 const ul = document.createElement('ul');
-                ul.className = 'item-list'; // Classe para estilização
+                ul.className = 'item-list';
                 data.forEach(solicitante => {
                     const li = document.createElement('li');
                     li.innerHTML = `
@@ -118,57 +101,57 @@
 
         async function editarSolicitante(id, nomeAtual) {
             const novoNome = prompt('Digite o novo nome para o solicitante:', nomeAtual);
-
             if (novoNome && novoNome.trim() !== '' && novoNome !== nomeAtual) {
-                const { error } = await supabase_client
-                    .from('solicitantes')
-                    .update({ nome: novoNome.trim() })
-                    .eq('id', id);
-
-                if (error) {
-                    showMessage(`Erro ao atualizar: ${error.message}`, false);
-                } else {
-                    showMessage('Solicitante atualizado com sucesso!', true);
-                    carregarSolicitantes(armadorSelect.value);
-                }
+                const { error } = await supabase_client.from('solicitantes').update({ nome: novoNome.trim() }).eq('id', id);
+                if (error) { showMessage(`Erro: ${error.message}`, false); } 
+                else { showMessage('Solicitante atualizado!', true); carregarSolicitantes(armadorSelect.value); }
             }
         }
 
         async function excluirSolicitante(id) {
-            const confirmacao = confirm('Tem certeza que deseja excluir este solicitante?');
-
-            if (confirmacao) {
-                const { error } = await supabase_client
-                    .from('solicitantes')
-                    .delete()
-                    .eq('id', id);
+            // =================================================================
+            // INÍCIO: CORREÇÃO DO ERRO AO DELETAR
+            // =================================================================
+            try {
+                // 1. Verifica se o solicitante está vinculado a alguma tarefa
+                const { count, error: checkError } = await supabase_client
+                    .from('tarefas')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('solicitante_id', id);
                 
-                if (error) {
-                    showMessage(`Erro ao excluir: ${error.message}`, false);
-                } else {
+                if (checkError) throw checkError;
+
+                if (count > 0) {
+                    showMessage(`Não é possível excluir: solicitante vinculado a ${count} tarefa(s).`, false);
+                    return; // Interrompe a exclusão
+                }
+
+                // 2. Se não estiver vinculado, prossegue com a confirmação e exclusão
+                const confirmacao = confirm('Tem certeza que deseja excluir este solicitante?');
+                if (confirmacao) {
+                    const { error } = await supabase_client.from('solicitantes').delete().eq('id', id);
+                    if (error) throw error;
                     showMessage('Solicitante excluído com sucesso!', true);
                     carregarSolicitantes(armadorSelect.value);
                 }
+            } catch (error) {
+                showMessage(`Erro ao excluir: ${error.message}`, false);
+                console.error(error);
             }
+            // ===============================================================
+            // FIM: CORREÇÃO
+            // ===============================================================
         }
 
         formCadastro.addEventListener('submit', async (e) => {
             e.preventDefault();
             const armadorId = armadorSelect.value;
             const nomeNovoSolicitante = nomeSolicitanteInput.value.trim();
-            if (!armadorId || !nomeNovoSolicitante) {
-                showMessage('Selecione um armador e digite o nome do solicitante.', false);
-                return;
-            }
-            const { error } = await supabase_client
-                .from('solicitantes')
-                .insert([{ nome: nomeNovoSolicitante, armador_id: armadorId }]);
-            
-            if (error) {
-                console.error('Erro ao cadastrar solicitante:', error);
-                showMessage(`Erro: ${error.message}`, false);
-            } else {
-                showMessage('Solicitante cadastrado com sucesso!', true);
+            if (!armadorId || !nomeNovoSolicitante) { showMessage('Selecione um armador e digite o nome.', false); return; }
+            const { error } = await supabase_client.from('solicitantes').insert([{ nome: nomeNovoSolicitante, armador_id: armadorId }]);
+            if (error) { showMessage(`Erro: ${error.message}`, false); } 
+            else {
+                showMessage('Solicitante cadastrado!', true);
                 nomeSolicitanteInput.value = '';
                 carregarSolicitantes(armadorId);
             }
@@ -176,22 +159,9 @@
 
         armadorSelect.addEventListener('change', (e) => {
             const armadorId = e.target.value;
-            if (armadorId) {
-                listaECadastroSection.style.display = 'block';
-                carregarSolicitantes(armadorId);
-            } else {
-                listaECadastroSection.style.display = 'none';
-            }
+            listaECadastroSection.style.display = armadorId ? 'block' : 'none';
+            if (armadorId) { carregarSolicitantes(armadorId); }
         });
-
-        function showMessage(message, isSuccess) {
-            messageContainer.textContent = message;
-            messageContainer.className = isSuccess ? 'message-success' : 'message-error';
-            messageContainer.style.display = 'block';
-            setTimeout(() => {
-                messageContainer.style.display = 'none';
-            }, 4000);
-        }
 
         window.onload = carregarArmadores;
     </script>
