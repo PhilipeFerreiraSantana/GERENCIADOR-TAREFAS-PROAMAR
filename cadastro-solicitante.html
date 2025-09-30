@@ -67,16 +67,20 @@
                 .from('armadores')
                 .select('id, nome')
                 .order('nome');
-            if (error) { console.error('Erro ao buscar armadores:', error); armadorSelect.innerHTML = '<option>Erro</option>'; return; }
+            if (error) { console.error('Erro ao buscar armadores:', error); armadorSelect.innerHTML = '<option>Erro ao carregar</option>'; return; }
             armadorSelect.innerHTML = '<option value="" disabled selected>Selecione um armador</option>';
-            data.forEach(armador => armadorSelect.add(new Option(armador.nome, armador.id)));
+            data.forEach(armador => {
+                const option = new Option(armador.nome, armador.id);
+                armadorSelect.add(option);
+            });
         }
 
         async function carregarSolicitantes(armadorId) {
             solicitantesContainer.innerHTML = '<p>Buscando solicitantes...</p>';
             
             const { data, error } = await supabase_client.from('solicitantes').select('id, nome').eq('armador_id', armadorId).order('nome');
-            if (error) { console.error('Erro:', error); solicitantesContainer.innerHTML = '<p>Erro ao carregar.</p>'; return; }
+
+            if (error) { console.error('Erro ao buscar solicitantes:', error); solicitantesContainer.innerHTML = '<p class="message-error">Erro ao carregar solicitantes.</p>'; return; }
 
             solicitantesContainer.innerHTML = '';
             if (data.length === 0) {
@@ -101,57 +105,36 @@
 
         async function editarSolicitante(id, nomeAtual) {
             const novoNome = prompt('Digite o novo nome para o solicitante:', nomeAtual);
+
             if (novoNome && novoNome.trim() !== '' && novoNome !== nomeAtual) {
                 const { error } = await supabase_client.from('solicitantes').update({ nome: novoNome.trim() }).eq('id', id);
-                if (error) { showMessage(`Erro: ${error.message}`, false); } 
-                else { showMessage('Solicitante atualizado!', true); carregarSolicitantes(armadorSelect.value); }
+
+                if (error) { showMessage(`Erro ao atualizar: ${error.message}`, false); } 
+                else { showMessage('Solicitante atualizado com sucesso!', true); carregarSolicitantes(armadorSelect.value); }
             }
         }
 
         async function excluirSolicitante(id) {
-            // =================================================================
-            // INÍCIO: CORREÇÃO DO ERRO AO DELETAR
-            // =================================================================
-            try {
-                // 1. Verifica se o solicitante está vinculado a alguma tarefa
-                const { count, error: checkError } = await supabase_client
-                    .from('tarefas')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('solicitante_id', id);
+            const confirmacao = confirm('Tem certeza que deseja excluir este solicitante?');
+
+            if (confirmacao) {
+                const { error } = await supabase_client.from('solicitantes').delete().eq('id', id);
                 
-                if (checkError) throw checkError;
-
-                if (count > 0) {
-                    showMessage(`Não é possível excluir: solicitante vinculado a ${count} tarefa(s).`, false);
-                    return; // Interrompe a exclusão
-                }
-
-                // 2. Se não estiver vinculado, prossegue com a confirmação e exclusão
-                const confirmacao = confirm('Tem certeza que deseja excluir este solicitante?');
-                if (confirmacao) {
-                    const { error } = await supabase_client.from('solicitantes').delete().eq('id', id);
-                    if (error) throw error;
-                    showMessage('Solicitante excluído com sucesso!', true);
-                    carregarSolicitantes(armadorSelect.value);
-                }
-            } catch (error) {
-                showMessage(`Erro ao excluir: ${error.message}`, false);
-                console.error(error);
+                if (error) { showMessage(`Erro ao excluir: ${error.message}`, false); } 
+                else { showMessage('Solicitante excluído com sucesso!', true); carregarSolicitantes(armadorSelect.value); }
             }
-            // ===============================================================
-            // FIM: CORREÇÃO
-            // ===============================================================
         }
 
         formCadastro.addEventListener('submit', async (e) => {
             e.preventDefault();
             const armadorId = armadorSelect.value;
             const nomeNovoSolicitante = nomeSolicitanteInput.value.trim();
-            if (!armadorId || !nomeNovoSolicitante) { showMessage('Selecione um armador e digite o nome.', false); return; }
+            if (!armadorId || !nomeNovoSolicitante) { showMessage('Selecione um armador e digite o nome do solicitante.', false); return; }
             const { error } = await supabase_client.from('solicitantes').insert([{ nome: nomeNovoSolicitante, armador_id: armadorId }]);
-            if (error) { showMessage(`Erro: ${error.message}`, false); } 
+            
+            if (error) { console.error('Erro ao cadastrar solicitante:', error); showMessage(`Erro: ${error.message}`, false); } 
             else {
-                showMessage('Solicitante cadastrado!', true);
+                showMessage('Solicitante cadastrado com sucesso!', true);
                 nomeSolicitanteInput.value = '';
                 carregarSolicitantes(armadorId);
             }

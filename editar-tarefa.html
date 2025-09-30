@@ -3,177 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Editar Tarefa</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Cadastro de Solicitantes</title>
+    <link rel="stylesheet" href="style.css?v=1.1">
 </head>
 <body>
-    <header><h1>Editar Tarefa</h1></header>
+    <header>
+        <h1>Cadastro de Solicitantes</h1>
+    </header>
+
     <main>
         <div id="message-container"></div>
-        <div id="loading-spinner" style="text-align: center; margin-top: 2rem;">Carregando dados da tarefa...</div>
-        
-        <section id="formulario-edicao" class="p-4" style="display: none;">
-            <h2>Detalhes da Tarefa</h2>
-            <form id="formulario-tarefa">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="form-group"><label for="titulo-tarefa">Título da Tarefa:</label><input type="text" id="titulo-tarefa" required></div>
-                    <div class="form-group"><label for="armador-tarefa">Armador:</label><select id="armador-tarefa" required></select></div>
-                    <div class="form-group"><label for="embarcacao-tarefa">Embarcação:</label><select id="embarcacao-tarefa" required disabled></select></div>
-                    <div class="form-group"><label for="solicitante-tarefa">Solicitante:</label><select id="solicitante-tarefa" required disabled></select></div>
-                    <div class="form-group"><label for="porto-tarefa">Porto:</label><select id="porto-tarefa" required></select></div>
-                    <div class="form-group"><label for="tipo-tarefa">Tipo da Tarefa:</label><select id="tipo-tarefa" required></select></div>
-                    <div class="form-group"><label for="data-inicio-tarefa">Data de Início:</label><input type="date" id="data-inicio-tarefa" required></div>
-                    <div class="form-group"><label for="protocolo-tarefa">Protocolo:</label><input type="text" id="protocolo-tarefa"></div>
-                    <div class="form-group"><label for="status-tarefa">Status:</label><select id="status-tarefa" required><option value="Não Iniciado">Não Iniciado</option><option value="Andamento">Andamento</option><option value="Exigência">Exigência</option><option value="Finalizado">Finalizado</option></select></div>
-                    <div class="form-group" id="data-fim-container" style="display: none;"><label for="data-fim-tarefa">Data do Fim:</label><input type="date" id="data-fim-tarefa"></div>
-                    <div class="form-group"><label for="prioridade-tarefa">Prioridade:</label><select id="prioridade-tarefa"><option value="Normal">Normal</option><option value="Alta">Alta</option><option value="Baixa">Baixa</option></select></div>
-                    <div class="form-group"><label for="deadline-tarefa">Deadline:</label><input type="date" id="deadline-tarefa"></div>
-                    <div class="form-group" id="responsavel-container" style="display: none;"><label for="responsavel-tarefa">Responsável:</label><select id="responsavel-tarefa"></select></div>
-                    <div class="form-group"><label for="taxa-paga-tarefa">Houve pagamento de taxa?</label><select id="taxa-paga-tarefa"><option value="false">Não</option><option value="true">Sim</option></select></div>
-                    <div class="form-group md:col-span-2"><label for="observacoes-tarefa">Observações:</label><textarea id="observacoes-tarefa" rows="4"></textarea></div>
-                    <div class="form-group"><label>Evidência Atual:</label><div id="evidencia-atual">N/A</div><label for="nova-evidencia">Anexar Nova Evidência:</label><input type="file" id="nova-evidencia" accept="image/*,.pdf"></div>
-                    <div class="form-group"><label>Ofício Atual:</label><div id="oficio-atual">N/A</div><label for="novo-oficio">Anexar Novo Ofício:</label><input type="file" id="novo-oficio" accept="image/*,.pdf"></div>
-                    <div class="md:col-span-2 text-center"><button type="submit" class="button">Salvar Alterações</button></div>
+
+        <section class="p-4" id="selecao-armador-section">
+            <h2 class="text-center">Selecione um Armador</h2>
+            <div class="form-group" style="max-width: 500px; margin: 1rem auto;">
+                <label for="armador-select">Armador (Cliente):</label>
+                <select id="armador-select" required>
+                    <option value="" disabled selected>Carregando armadores...</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="p-4" id="lista-e-cadastro-section" style="display: none;">
+            
+            <div id="lista-solicitantes-existentes">
+                <h2 class="text-center">Solicitantes Já Cadastrados</h2>
+                <div id="solicitantes-container" class="lista-container">
+                    </div>
+            </div>
+
+            <hr style="margin: 2rem auto; max-width: 80%;">
+
+            <h2 class="text-center" style="margin-top: 2rem;">Adicionar Novo Solicitante</h2>
+            <form id="form-cadastro" class="form-group" style="max-width: 500px; margin: 1rem auto;">
+                <div class="form-group">
+                    <label for="nome-solicitante">Nome do Novo Solicitante:</label>
+                    <input type="text" id="nome-solicitante" placeholder="Digite o nome do contato" required>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="button">Cadastrar Solicitante</button>
                 </div>
             </form>
+
         </section>
-        <div class="nav-buttons"><a id="voltar-lista" href="lista-tarefas.html" class="button">Voltar</a></div>
+
+        <div class="nav-buttons">
+            <a href="cadastros.html" class="button">Voltar</a>
+        </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.0/dist/umd/supabase.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <script src="auth-guard.js"></script>
-    <script src="user-display.js"></script>
     <script>
-        const formulario = document.getElementById('formulario-tarefa');
-        const loadingSpinner = document.getElementById('loading-spinner');
-        const formularioEdicao = document.getElementById('formulario-edicao');
-        const params = new URLSearchParams(window.location.search);
-        const tarefaId = params.get('id');
-        const responsavelContainer = document.getElementById('responsavel-container');
-        const responsavelSelect = document.getElementById('responsavel-tarefa');
-
-        async function uploadArquivo(arquivo, pasta) {
-            if (!arquivo) return null;
-            const filePath = `${pasta}/${Date.now()}_${arquivo.name}`;
-            const { error: uploadError } = await supabase_client.storage.from('storage').upload(filePath, arquivo, { upsert: true });
-            if (uploadError) throw new Error(`Erro no upload (${pasta}): ${uploadError.message}`);
-            return supabase_client.storage.from('storage').getPublicUrl(filePath).data.publicUrl;
+        const armadorSelect = document.getElementById('armador-select');
+        const listaECadastroSection = document.getElementById('lista-e-cadastro-section');
+        const solicitantesContainer = document.getElementById('solicitantes-container');
+        const formCadastro = document.getElementById('form-cadastro');
+        const nomeSolicitanteInput = document.getElementById('nome-solicitante');
+        
+        async function carregarArmadores() {
+            const { data, error } = await supabase_client
+                .from('armadores')
+                .select('id, nome')
+                .order('nome');
+            if (error) { console.error('Erro ao buscar armadores:', error); armadorSelect.innerHTML = '<option>Erro ao carregar</option>'; return; }
+            armadorSelect.innerHTML = '<option value="" disabled selected>Selecione um armador</option>';
+            data.forEach(armador => {
+                const option = new Option(armador.nome, armador.id);
+                armadorSelect.add(option);
+            });
         }
 
-        (async function inicializarPagina() {
-            if (!tarefaId) { loadingSpinner.textContent = 'ID da tarefa não encontrado.'; return; }
-
-            const armadorSelect = document.getElementById('armador-tarefa');
-            const portoSelect = document.getElementById('porto-tarefa');
-            const tipoTarefaSelect = document.getElementById('tipo-tarefa');
-            const embarcacaoSelect = document.getElementById('embarcacao-tarefa');
-            const solicitanteSelect = document.getElementById('solicitante-tarefa');
-            const statusTarefaSelect = document.getElementById('status-tarefa');
-            const dataFimContainer = document.getElementById('data-fim-container');
+        async function carregarSolicitantes(armadorId) {
+            solicitantesContainer.innerHTML = '<p>Buscando solicitantes...</p>';
             
-            async function popularDropdown(select, tabela) {
-                const { data } = await supabase_client.from(tabela).select('id, nome').order('nome');
-                select.innerHTML = '<option value="" disabled>Selecione</option>';
-                data.forEach(item => select.add(new Option(item.nome, item.id)));
+            const { data, error } = await supabase_client.from('solicitantes').select('id, nome').eq('armador_id', armadorId).order('nome');
+
+            if (error) { console.error('Erro ao buscar solicitantes:', error); solicitantesContainer.innerHTML = '<p class="message-error">Erro ao carregar solicitantes.</p>'; return; }
+
+            solicitantesContainer.innerHTML = '';
+            if (data.length === 0) {
+                solicitantesContainer.innerHTML = '<p>Nenhum solicitante cadastrado para este armador.</p>';
+            } else {
+                const ul = document.createElement('ul');
+                ul.className = 'item-list';
+                data.forEach(solicitante => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span>${solicitante.nome}</span>
+                        <div class="item-actions">
+                            <button class="action-button alterar-button" onclick="editarSolicitante('${solicitante.id}', '${solicitante.nome}')">Editar</button>
+                            <button class="action-button excluir-button" onclick="excluirSolicitante('${solicitante.id}')">Excluir</button>
+                        </div>
+                    `;
+                    ul.appendChild(li);
+                });
+                solicitantesContainer.appendChild(ul);
             }
-            async function carregarDropdownsDependentes(armadorId) {
-                embarcacaoSelect.disabled = true; solicitanteSelect.disabled = true;
-                if (!armadorId) return;
-                const { data: emb } = await supabase_client.from('embarcacoes').select('id, nome').eq('armador_id', armadorId).order('nome');
-                embarcacaoSelect.innerHTML = '<option value="" disabled>Selecione</option>';
-                emb.forEach(item => embarcacaoSelect.add(new Option(item.nome, item.id)));
-                const { data: sol } = await supabase_client.from('solicitantes').select('id, nome').eq('armador_id', armadorId).order('nome');
-                solicitanteSelect.innerHTML = '<option value="" disabled>Selecione</option>';
-                sol.forEach(item => solicitanteSelect.add(new Option(item.nome, item.id)));
-                embarcacaoSelect.disabled = false; solicitanteSelect.disabled = false;
+        }
+
+        async function editarSolicitante(id, nomeAtual) {
+            const novoNome = prompt('Digite o novo nome para o solicitante:', nomeAtual);
+
+            if (novoNome && novoNome.trim() !== '' && novoNome !== nomeAtual) {
+                const { error } = await supabase_client.from('solicitantes').update({ nome: novoNome.trim() }).eq('id', id);
+
+                if (error) { showMessage(`Erro ao atualizar: ${error.message}`, false); } 
+                else { showMessage('Solicitante atualizado com sucesso!', true); carregarSolicitantes(armadorSelect.value); }
             }
-            armadorSelect.addEventListener('change', () => carregarDropdownsDependentes(armadorSelect.value));
-            statusTarefaSelect.addEventListener('change', () => { dataFimContainer.style.display = (statusTarefaSelect.value === 'Finalizado') ? 'flex' : 'none'; });
+        }
 
-            const { data: { user } } = await supabase_client.auth.getUser();
-            const { data: profile } = await supabase_client.from('profiles').select('role').eq('id', user.id).single();
-            if (profile && (profile.role === 'master' || profile.role === 'gestor')) {
-                responsavelContainer.style.display = 'block';
-                const { data: usuarios } = await supabase_client.from('profiles').select('id, alias, email').order('alias');
-                if (usuarios) { usuarios.forEach(u => responsavelSelect.add(new Option(u.alias || u.email, u.id))); }
+        async function excluirSolicitante(id) {
+            const confirmacao = confirm('Tem certeza que deseja excluir este solicitante?');
+
+            if (confirmacao) {
+                const { error } = await supabase_client.from('solicitantes').delete().eq('id', id);
+                
+                if (error) { showMessage(`Erro ao excluir: ${error.message}`, false); } 
+                else { showMessage('Solicitante excluído com sucesso!', true); carregarSolicitantes(armadorSelect.value); }
             }
-            
-            await Promise.all([ popularDropdown(armadorSelect, 'armadores'), popularDropdown(portoSelect, 'portos'), popularDropdown(tipoTarefaSelect, 'tipos_tarefa') ]);
-            
-            const { data: tarefa, error } = await supabase_client.from('tarefas').select('*').eq('id', tarefaId).single();
-            if (error) { loadingSpinner.textContent = 'Erro ao carregar tarefa. Verifique suas permissões.'; console.error(error); return; }
+        }
 
-            document.getElementById('titulo-tarefa').value = tarefa.titulo;
-            document.getElementById('data-inicio-tarefa').value = tarefa.dataInicio;
-            document.getElementById('protocolo-tarefa').value = tarefa.protocolo || '';
-            statusTarefaSelect.value = tarefa.status;
-            document.getElementById('data-fim-tarefa').value = tarefa.dataFim || '';
-            document.getElementById('observacoes-tarefa').value = tarefa.observacoes || '';
-            document.getElementById('prioridade-tarefa').value = tarefa.prioridade || 'Normal';
-            document.getElementById('deadline-tarefa').value = tarefa.data_deadline;
-            document.getElementById('taxa-paga-tarefa').value = tarefa.taxa_paga;
-            portoSelect.value = tarefa.porto_id;
-            armadorSelect.value = tarefa.armador_id;
-            tipoTarefaSelect.value = tarefa.tipo_id;
-            if (responsavelSelect.options.length > 0) responsavelSelect.value = tarefa.user_id;
-            
-            await carregarDropdownsDependentes(tarefa.armador_id);
-            embarcacaoSelect.value = tarefa.embarcacao_id;
-            solicitanteSelect.value = tarefa.solicitante_id;
-            document.getElementById('evidencia-atual').innerHTML = tarefa.urlEvidencia ? `<a href="${tarefa.urlEvidencia}" target="_blank">Ver Evidência</a>` : 'N/A';
-            document.getElementById('oficio-atual').innerHTML = tarefa.url_oficio ? `<a href="${tarefa.url_oficio}" target="_blank">Ver Ofício</a>` : 'N/A';
-            if (tarefa.status === 'Finalizado') dataFimContainer.style.display = 'flex';
-            loadingSpinner.style.display = 'none';
-            formularioEdicao.style.display = 'block';
-        })();
-
-        formulario.addEventListener('submit', async (e) => {
+        formCadastro.addEventListener('submit', async (e) => {
             e.preventDefault();
-            try {
-                const { data: tarefaAtual } = await supabase_client.from('tarefas').select('urlEvidencia, url_oficio').eq('id', tarefaId).single();
-                if (!tarefaAtual) throw new Error("Tarefa não encontrada.");
-
-                const [urlEvidencia, urlOficio] = await Promise.all([
-                    uploadArquivo(document.getElementById('nova-evidencia').files[0], 'prints'),
-                    uploadArquivo(document.getElementById('novo-oficio').files[0], 'oficios')
-                ]);
-                
-                const tarefaAtualizada = {
-                    // Título agora é salvo em maiúsculas
-                    titulo: document.getElementById('titulo-tarefa').value.trim().toUpperCase(),
-                    armador_id: document.getElementById('armador-tarefa').value,
-                    embarcacao_id: document.getElementById('embarcacao-tarefa').value,
-                    solicitante_id: document.getElementById('solicitante-tarefa').value,
-                    porto_id: document.getElementById('porto-tarefa').value,
-                    tipo_id: document.getElementById('tipo-tarefa').value,
-                    protocolo: document.getElementById('protocolo-tarefa').value,
-                    status: document.getElementById('status-tarefa').value,
-                    prioridade: document.getElementById('prioridade-tarefa').value,
-                    observacoes: document.getElementById('observacoes-tarefa').value,
-                    taxa_paga: document.getElementById('taxa-paga-tarefa').value === 'true',
-                    url_oficio: urlOficio !== null ? urlOficio : tarefaAtual.url_oficio,
-                    urlEvidencia: urlEvidencia !== null ? urlEvidencia : tarefaAtual.urlEvidencia,
-                    user_id: responsavelContainer.style.display === 'block' ? responsavelSelect.value : undefined,
-                    dataInicio: document.getElementById('data-inicio-tarefa').value || null,
-                    dataFim: document.getElementById('data-fim-tarefa').value || null,
-                    data_deadline: document.getElementById('deadline-tarefa').value || null
-                };
-                if (tarefaAtualizada.user_id === undefined) delete tarefaAtualizada.user_id;
-
-                const { error } = await supabase_client.from('tarefas').update(tarefaAtualizada).eq('id', tarefaId);
-                if (error) throw error;
-                
-                // =================================================================
-                // INÍCIO: CORREÇÃO DA MENSAGEM DE SUCESSO
-                // =================================================================
-                localStorage.setItem('successMessage', 'Tarefa alterada com sucesso!');
-                // ===============================================================
-                // FIM: CORREÇÃO
-                // ===============================================================
-
-                window.location.href = `lista-tarefas.html?filtro=minhas_ativas`;
-            } catch (error) { showMessage(`Erro ao atualizar: ${error.message}`, false); }
+            const armadorId = armadorSelect.value;
+            const nomeNovoSolicitante = nomeSolicitanteInput.value.trim();
+            if (!armadorId || !nomeNovoSolicitante) { showMessage('Selecione um armador e digite o nome do solicitante.', false); return; }
+            const { error } = await supabase_client.from('solicitantes').insert([{ nome: nomeNovoSolicitante, armador_id: armadorId }]);
+            
+            if (error) { console.error('Erro ao cadastrar solicitante:', error); showMessage(`Erro: ${error.message}`, false); } 
+            else {
+                showMessage('Solicitante cadastrado com sucesso!', true);
+                nomeSolicitanteInput.value = '';
+                carregarSolicitantes(armadorId);
+            }
         });
+
+        armadorSelect.addEventListener('change', (e) => {
+            const armadorId = e.target.value;
+            listaECadastroSection.style.display = armadorId ? 'block' : 'none';
+            if (armadorId) { carregarSolicitantes(armadorId); }
+        });
+
+        window.onload = carregarArmadores;
     </script>
 </body>
 </html>

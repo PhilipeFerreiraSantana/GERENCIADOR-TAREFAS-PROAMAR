@@ -76,7 +76,7 @@
                 document.getElementById('logo-armador-img-lista').style.display = 'block';
             }
 
-            let query = supabase_client.from('tarefas').select(`*, portos(nome), profiles(alias)`);
+            let query = supabase_client.from('tarefas').select(`*, portos(nome), profiles(alias), embarcacoes(nome)`);
             const hoje = new Date().toISOString();
 
             switch (filtro) {
@@ -105,21 +105,23 @@
                     loadingSpinner.textContent = "Filtro desconhecido."; return;
             }
 
-            const { data: tarefas, error } = await query.order('dataInicio', { ascending: false });
+            const { data: tarefas, error } = await query
+                .order('prioridade', { ascending: true })
+                .order('data_deadline', { ascending: true, nullsfirst: false });
+
             if (error) { loadingSpinner.textContent = "Erro ao buscar tarefas."; console.error(error); return; }
             renderizarTarefas(tarefas, filtro);
         }
 
         function renderizarTarefas(tarefas, filtro) {
             loadingSpinner.style.display = 'none';
-            tarefasContainer.innerHTML = ''; // Limpa o container antes de adicionar a tabela
+            tarefasContainer.innerHTML = '';
 
             if (!tarefas || tarefas.length === 0) {
                 tarefasContainer.innerHTML = '<p style="text-align: center;">Nenhuma tarefa encontrada.</p>';
                 return;
             }
 
-            // CRIA O CONTAINER PARA A TABELA RESPONSIVA
             const tableContainer = document.createElement('div');
             tableContainer.className = 'table-responsive-container';
 
@@ -128,10 +130,12 @@
                 <thead>
                     <tr>
                         <th>Cód.</th>
-                        <th>Título</th>
-                        <th>Responsável</th>
                         <th>Porto</th>
+                        <th>Navio</th>
+                        <th>Título</th>
                         <th>Status</th>
+                        <th>Responsável</th>
+                        <th>Deadline</th>
                         <th>Ações</th>
                     </tr>
                 </thead>
@@ -139,17 +143,12 @@
                     ${tarefas.map(t => `
                         <tr>
                             <td>${t.codigo ? t.codigo.slice(-4) : 'N/A'}</td>
-<<<<<<< HEAD
                             <td>${t.portos ? t.portos.nome : 'N/A'}</td>
                             <td>${t.embarcacoes ? t.embarcacoes.nome : 'N/A'}</td>
-                            <td><a href="detalhar-tarefa.html?id=${t.id}" class="detalhe-link">${t.titulo ? t.titulo.toUpperCase() : ''}</a></td>
-                            <td>${t.status}</td>
-=======
                             <td><a href="detalhar-tarefa.html?id=${t.id}" class="detalhe-link">${t.titulo}</a></td>
->>>>>>> parent of 8d01696 (Ajuste de colunas)
-                            <td>${t.profiles ? t.profiles.alias : 'N/A'}</td>
-                            <td>${t.portos ? t.portos.nome : 'N/A'}</td>
                             <td>${t.status}</td>
+                            <td>${t.profiles ? t.profiles.alias : 'N/A'}</td>
+                            <td>${formatarData(t.data_deadline)}</td>
                             <td class="actions-cell">
                                 <a href="editar-tarefa.html?id=${t.id}" class="action-button alterar-button">Alterar</a>
                                 ${filtro !== 'excluidas' ? `<button class="action-button excluir-button" data-id="${t.id}">Excluir</button>` : ''}
@@ -159,7 +158,6 @@
                 </tbody>
             `;
             
-            // Adiciona a tabela ao container, e o container à página
             tableContainer.appendChild(table);
             tarefasContainer.appendChild(tableContainer);
         }
@@ -191,20 +189,7 @@
             tarefaIdParaExcluir = null; 
         });
         
-        // =================================================================
-        // INÍCIO: CORREÇÃO DA MENSAGEM DE SUCESSO
-        // =================================================================
-        document.addEventListener('DOMContentLoaded', () => {
-            const successMessage = localStorage.getItem('successMessage');
-            if (successMessage) {
-                showMessage(successMessage, true);
-                localStorage.removeItem('successMessage'); // Limpa a mensagem para não exibir de novo
-            }
-            carregarTarefasFiltradas();
-        });
-        // ===============================================================
-        // FIM: CORREÇÃO
-        // ===============================================================
+        document.addEventListener('DOMContentLoaded', carregarTarefasFiltradas);
     </script>
 </body>
 </html>
